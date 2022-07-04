@@ -65,7 +65,7 @@
                 <div class="sm:p-1 lg:p-4 w-full bg-white container ">
                     <div class="btnShow">
                         <div class="btn-group ">
-                            <button class="btn w-1/2 btn-primary btn-outline">Login</button>
+                            <button class="btn w-1/2 btn-primary btn-outline"><a href="/login">Login</a></button>
                             <button class="btn btn-active w-1/2 whitespace-nowrap">Create Account</button>
                         </div>
                         <p class="mt-2 text-[#717782] flex w-[13rem] mx-auto items-center text-center mt-6">Please enter
