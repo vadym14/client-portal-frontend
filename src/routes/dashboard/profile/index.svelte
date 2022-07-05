@@ -1,4 +1,5 @@
 <script>
+    const states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'Washington, D.C.', 'West Virginia', 'Wisconsin', 'Wyoming'];
     let jsonData = {
         fullName : '',
         email : '',
@@ -49,9 +50,9 @@
                     </div>
                     <div class="basis-2/5 max-w-xs">
                         <select class="select select-bordered max-w-xs" bind:value={jsonData.mobile}>
-                            <option disabled selected>Mobile</option>
-                            <option>1234567</option>
-                            <option>123-123-1234</option>
+                            <option value="Mobile">Mobile</option>
+                            <option value="Home Landline">Home Landline</option>
+                            <option value="Work Landline">Work Landline</option>
                         </select>
                     </div>
                 </div>
@@ -79,7 +80,9 @@
                             </label>
                             <select class="select select-bordered" bind:value={jsonData.contactState}>
                                 <option disabled selected>Select</option>
-                                <option>NY</option>
+                                {#each states as state}
+                                    <option>{state}</option>
+                                {/each}
                             </select>
                         </div>
                     </div>
@@ -126,7 +129,9 @@
                         </label>
                         <select class="select select-bordered" bind:value={jsonData.autoPayState}>
                             <option disabled selected>Select</option>
-                            <option>NY</option>
+                            {#each states as state}
+                                <option>{state}</option>
+                            {/each}
                         </select>
                     </div>
                 </div>

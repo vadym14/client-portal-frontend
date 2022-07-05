@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import logo from './svelte-logo.svg';
 	import john from './john.svg';
-	import { userData } from '$lib/store/userStore';
+	import { userData } from '../../lib/store/userStore';
 	import { logOutUser } from '$lib/utils/requestUtils';
 </script>
 

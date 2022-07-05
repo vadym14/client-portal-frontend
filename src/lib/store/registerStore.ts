@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
 
-import type { Register } from '$lib/interfaces/user.interface';
+import type { UserRegister } from '$lib/interfaces/user.interface';
 
-export const registerData = writable<Register>({});
+export const registerData = writable<UserRegister>({});

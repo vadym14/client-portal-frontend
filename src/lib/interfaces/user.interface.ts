@@ -4,9 +4,18 @@ export interface Token {
 }
 
 export interface UserRegister {
-	account?: string;
-	birth?: string;
+	accountNo?: string;
+	dob?: string;
 	ssn?: string;
+	fullName?: string;
+	email?: string;
+	phoneNo?: string;
+	phoneType?: string;
+	street?: string;
+	city?: string;
+	state?: string;
+	code?: string;
+	offer?: number;
 }
 export interface User {
 	id?: string;

@@ -5,10 +5,12 @@
 	import { notificationData } from '$lib/store/notificationStore';
 	import { fly } from 'svelte/transition';
 	import { afterUpdate, onMount } from 'svelte';*/
+	import { goto } from "$app/navigation";
+	import {userData1} from '../lib/store/userStore.ts';
 	import '../app.css';
 	import { notificationData } from '$lib/store/notificationStore';
 	import { fly } from 'svelte/transition';
-	import {afterUpdate} from "svelte";
+	import {afterUpdate, onMount} from "svelte";
 	afterUpdate(async () => {
 		const notifyEl = document.getElementById('notification') as HTMLElement;
 		// const notifyEl = document.getElementsByClassName('notification');
@@ -19,6 +21,13 @@
 			}, 3000);
 		}
 	});
+	onMount(async () => {
+		if(Object.keys($userData1).length > 0 ){
+			 await goto('/dashboard');
+		}
+	})
+
+
 	/*import Header from '../components/Header/Header.svelte';
 	import Loader from '../components/Loader/Loader.svelte';
 

@@ -1,16 +1,23 @@
 <script lang="ts">
     // import type { CustomError } from '$lib/interfaces/error.interface';
     import { api } from '../lib/_api.ts';
-    import {userData1}  from '../lib/store/userStore.ts';
+    import {userData1}  from '../lib/store/userStore.js';
     import {variables} from "../lib/utils/constants";
     import {notificationData} from "../lib/store/notificationStore";
     import { goto } from "$app/navigation";
+
+
 
     const base = variables.BASE_API_URI;
     let lastName = '', accountNbr = '', password = '', errorClass='',btnDisable=false,
         btnLoading=false;
         // errors: Array<CustomError>;
     const handleLogin=async () => {
+        $userData1 = {
+            lastName: lastName,
+            accountNbr: accountNbr,
+            password: password
+        };
         goto('/dashboard')
         btnDisable = true;
         btnLoading = true;
@@ -20,6 +27,7 @@
             btnLoading = false;
         }else {
             const jsonData={
+                lastname: lastName,
                 usr:accountNbr,
                 pwd:password
             }
@@ -75,13 +83,13 @@
                     </div>
                     <hr class="text-gray-200"/>
                     <div class="mt-6 text-center">
-                        <p class="text-grey">Having problems signing in? - <a href="http://" class="btn-link underline">Contact Us</a></p>
+                        <p class="text-grey">Having problems signing in? - <a href="https://tarefinancial.com/contact" class="btn-link underline">Contact Us</a></p>
                     </div>
                 </div>
                 <div class="bg-[#7661E2] w-full flex flex-col">
                     <div class="m-auto">
                         <h1 class="text-white text-4xl font-semibold whitespace-nowrap">Create Account</h1>
-                        <button class=" flex mx-auto mt-5 bg-[#8A76F3] hover:bg-[#9e8df5] text-white font-normal py-2 px-4 rounded"><a href="/register">Create Now!</a></button>
+                        <button class=" flex mx-auto mt-5 bg-[#8A76F3] hover:bg-[#9e8df5] text-white font-normal py-2 px-4 rounded" on:click={()=>goto('./register')}>Create Now!</button>
 
                     </div>
                 </div>
@@ -97,7 +105,7 @@
                             <div class="sm:block lg:hidden">
                                 <div class="btn-group ">
                                     <button class="btn w-1/2  btn-active">Login</button>
-                                    <button class="btn  w-1/2 whitespace-nowrap btn-primary btn-outline"><a href="/register">Create Account</a></button>
+                                    <button class="btn  w-1/2 whitespace-nowrap btn-primary btn-outline "  on:click={()=>goto('./register')} >Create Account</button>
                                 </div>
                                 <p class="mt-2 text-[#717782] flex justify-center  text-sm mt-6">Sign In to your account</p>
                             </div>
@@ -128,7 +136,7 @@
                             </div>
                             <button disabled={btnDisable} class={`btn btn-primary w-full mt-10 ${btnLoading?'loading':''}`} on:click={()=>handleLogin()}>Login</button>
 
-                            <p class="mt-16 text-[#717782] flex  text-sm  mt-6">Having problems signing in? - <a href="http://" class="btn-link underline">Contact Us</a></p>
+                            <p class="mt-16 text-[#717782] flex  text-sm  mt-6">Having problems signing in? - <a href="https://tarefinancial.com/contact" class="btn-link underline">Contact Us</a></p>
 
                         </div>
                     </div>
