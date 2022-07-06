@@ -1,57 +1,27 @@
 <script lang="ts">
-    import {fly} from 'svelte/transition';
     import {goto} from '$app/navigation';
-    import {variables} from '$lib/utils/constants';
-    import {notificationData} from '$lib/store/notificationStore';
-    import {post} from '$lib/utils/requestUtils';
-    import type {CustomError} from '$lib/interfaces/error.interface';
-    import type {UserResponse} from '$lib/interfaces/user.interface';
-    import {changeText} from '$lib/helpers/buttonText';
     import {registerData} from "../lib/store/registerStore";
-    // import { UserRegister } from "$lib/interfaces/user.interface";
+    import {onMount} from "svelte";
 
     let jsonData = {
-        accountNo: '',
-        dob: '',
+        acc_name: '',
+        date_of_birth: '',
         ssn: '',
     }
     let errorClass = '';
+    onMount(()=>{
+        if($registerData !=={}){
+            jsonData = {...$registerData};
+        }
+    });
     const handleRegSave = () => {
-        if (jsonData.accountNo === '' || jsonData.dob === '' || jsonData.ssn === '') {
+        if (jsonData.acc_name === '' || jsonData.date_of_birth === '' || jsonData.ssn === '') {
             errorClass = 'input-error';
         } else {
-            registerData.set(jsonData);
+            $registerData=jsonData;
             goto('/personinfo')
         }
     }
-
-    let register: any,
-        email: string,
-        fullName: string,
-        bio: string,
-        username: string,
-        password: string,
-        confirmPassword: string,
-        errors: Array<CustomError>;
-    const submitForm = async () => {
-        const [jsonRes, err] = await post(fetch, `${variables.BASE_API_URI}/register/`, {
-            user: {
-                email: email,
-                username: username,
-                password: password,
-                bio: bio,
-                full_name: fullName
-            }
-        });
-        const response: UserResponse = jsonRes;
-
-        if (err.length > 0) {
-            errors = err;
-        } else if (response.user) {
-            notificationData.update(() => 'Registration successful. Login now...');
-            await goto('/accounts/login');
-        }
-    };
 </script>
 
 <svelte:head>
@@ -79,15 +49,15 @@
                             <label class="label">
                                 <span class="title-font">Account Number</span>
                             </label>
-                            <input type="text" placeholder="C-XXX-00-00000" bind:value={jsonData.accountNo}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.accountNo===''?errorClass:''}`} />
+                            <input type="text" placeholder="C-XXX-00-00000" bind:value={jsonData.acc_name}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.acc_name===''?errorClass:''}`} />
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="title-font">Birth Date</span>
                             </label>
-                            <input type="date" bind:value={jsonData.dob}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.dob===''?errorClass:''}`} />
+                            <input type="date" bind:value={jsonData.date_of_birth}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.date_of_birth===''?errorClass:''}`} />
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">

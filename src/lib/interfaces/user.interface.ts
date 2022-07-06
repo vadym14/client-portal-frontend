@@ -4,18 +4,18 @@ export interface Token {
 }
 
 export interface UserRegister {
-	accountNo?: string;
-	dob?: string;
+	acc_name?: string;
+	date_of_birth?: string;
 	ssn?: string;
-	fullName?: string;
-	email?: string;
-	phoneNo?: string;
-	phoneType?: string;
-	street?: string;
+	full_name?: string;
+	email_id?: string;
+	phone?: string;
+	phone_type?: string;
+	address_line1?: string;
 	city?: string;
 	state?: string;
-	code?: string;
-	offer?: number;
+	pincode?: string;
+	//offer?: number;
 }
 export interface User {
 	id?: string;

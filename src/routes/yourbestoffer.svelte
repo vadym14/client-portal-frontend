@@ -7,40 +7,41 @@
     let offerData,selectOffer=';'
     let userData=$registerData;
     const cardd = [1, 2, 3, 4, 5]
-    onMount(async () => {
-        const request = new Request(`http://192.168.100.229:8002/api/resource/Payment%20Term`, {method: 'GET'});
-        fetch(request)
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error('Something went wrong on API server!');
-                }
-            })
-            .then(response => {
-                console.debug(response);
-                // ...
-            }).catch(error => {
-            console.error(error);
-        });
-
-        // const response = await api('GET', `resource/Payment%20Term`);
-        /* // const response = await api('GET', `resource/Payment%20Term`);
-         if(response.status===200){
-             offerData =await response.json();
-             console.log(offerData,"Offer dta")
-         }else {
-             console.log('error',response);
-             //notifications.danger('Something wrong', 2000)
-         }*/
+    let previousData ={};
+    onMount(()=>{
+        previousData = {...$registerData};
+        if(previousData==={} || previousData.acc_name===undefined || previousData.ssn===undefined){
+            goto('/register');
+        }else if(previousData.email_id===undefined || previousData.phone===undefined || previousData.full_name===undefined) {
+            goto('/personinfo');
+        }
     })
-    const handleSave = () => {
-        goto('/docusign')
+    onMount(async () => {
+        const response = await api('get', `resource/Payment%20Term`);
+        if (response.status === 200) {
+            offerData = await response.json();
+            console.log(offerData, "Offer dta")
+        } else {
+            console.log('error', response);
+            //notifications.danger('Something wrong', 2000)
+        }
+    })
+    const handleSave = async () => {
+        const response = await api('post', `method/tare_financial.tare_financial.doctype.user.user.register`, userData);
+        if (response.status === 200) {
+            $registerData = {};
+            console.log("response", response.json());
+            // goto('/docusign')
+        } else {
+            console.log('error', response);
+            //notifications.danger('Something wrong', 2000)
+        }
     }
 
     const handleSelectOffer = (index) => {
         selectOffer=index;
     }
+    console.log('data=',$registerData)
 </script>
 <section class="h-screen flex">
     <div class="m-auto">
@@ -52,21 +53,21 @@
                         <div class="flex lg:flex-row flex-col">
                             <div class="basis-1/2">
                                 <div class="flex justify-between sm:text-sm lg:text-base">Name: <span
-                                        class="text-[#717782]">{userData?.fullName}</span></div>
+                                        class="text-[#717782]">{userData?.full_name}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">DOB: <span
-                                        class="text-[#717782]">{userData?.dob}</span></div>
+                                        class="text-[#717782]">{userData?.date_of_birth}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">SSN: <span
                                         class="text-[#717782]">{userData?.ssn}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">Phone Number: <span
-                                        class="text-[#717782]">{userData?.phoneNo}</span></div>
+                                        class="text-[#717782]">{userData?.phone}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">Address: <span
-                                        class="text-[#717782]">{userData?.street}, {userData?.city}, {userData?.state}, {userData?.code}</span></div>
+                                        class="text-[#717782]">{userData?.address_line1}, {userData?.city}, {userData?.state}, {userData?.pincode}</span></div>
                             </div>
                             <div class="divider lg:divider-horizontal divider-vertical"></div>
                             <div class="basis-1/2">
                                 <div class="flex justify-between">Creditor: <span
                                         class="text-[#717782]">XYZ Bank, Inc.</span></div>
-                                <div class="flex justify-between">Creditor Account: <span class="text-[#717782]">{userData?.accountNo}</span>
+                                <div class="flex justify-between">Creditor Account: <span class="text-[#717782]">{userData?.acc_name}</span>
                                 </div>
                                 <div class="flex justify-between">Opening Date: <span
                                         class="text-[#717782]">01/01/2019</span></div>
@@ -123,8 +124,8 @@
                             <button class="btn lg:btn-wide sm:w-full btn-outline btn-primary" on:click={()=>goto('https://tarefinancial.com/contact')}>Contact Us</button>
                         </div>
                         <div>
-                            <button class="btn lg:btn-wide sm:w-full btn-primary" on:click={()=>{handleSave()}}>Save &
-                                Exit
+                            <button class="btn lg:btn-wide sm:w-full btn-primary" on:click={()=>{handleSave()}}>
+                                Save & Exit
                             </button>
                         </div>
                     </div>
