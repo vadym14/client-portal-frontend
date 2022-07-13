@@ -9,17 +9,15 @@
 	guarantees are made. Don't use it to organise your life.)
 */
 
-import {variables} from "./utils/constants";
-
-const base = variables.BASE_API_URI;
+const base = '/zecsn_ext';
 
 export function api(method: string, resource: string, data?: Record<string, unknown>) {
-	return fetch(`${base}/${resource}`, {
-		method,
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json',
-		},
-		body: data && JSON.stringify(data)
-	});
+    return fetch(`${base}/${resource}`, {
+        method,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: data && JSON.stringify(data)
+    });
 }

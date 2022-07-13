@@ -5,6 +5,7 @@ export interface Token {
 
 export interface UserRegister {
 	acc_name?: string;
+	name?: string;
 	date_of_birth?: string;
 	ssn?: string;
 	full_name?: string;
@@ -15,6 +16,7 @@ export interface UserRegister {
 	city?: string;
 	state?: string;
 	pincode?: string;
+	password?: string;
 	//offer?: number;
 }
 export interface User {

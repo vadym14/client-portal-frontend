@@ -7,13 +7,13 @@
     let jsonData = { full_name : '', email_id : '', phone : '', phone_type : '',
         address_line1 : '', city : '', state : '', pincode : '',};
     let errorClass = '';
-    let previousData ={acc_name: undefined, ssn: undefined};
-    onMount(()=>{
-        previousData = {...$registerData};
-        if(previousData==={} || previousData.acc_name===undefined || previousData.ssn===undefined){
-            goto('/register');
-        }
-    })
+    let previousData ={name: undefined, ssn: undefined};
+    // onMount(()=>{
+    //     previousData = {...$registerData};
+    //     if(previousData==={} || previousData.acc_name===undefined || previousData.ssn===undefined){
+    //         goto('/register');
+    //     }
+    // })
     onMount(()=>{
         if($registerData !=={}){
             jsonData = {...$registerData};

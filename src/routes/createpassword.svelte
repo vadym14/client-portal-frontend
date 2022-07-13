@@ -1,7 +1,10 @@
 <script>
     import { goto } from '$app/navigation';
+    import {registerData} from "../lib/store/registerStore.ts";
     let password = '';
     const handleCreatePassword = () => {
+        $registerData.password = password;
+        goto('/personinfo');
     };
 </script>
 
