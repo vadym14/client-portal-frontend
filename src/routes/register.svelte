@@ -19,8 +19,10 @@
         ssn: '',
     }
     let errorClass = '';
+    let errorStatus = false;
+    let errorMessage = '';
     onMount(() => {
-        if ($registerData !== {}) {
+        if (Object.keys($registerData).length !== 0) {
             jsonData = {...$registerData};
         }
     });
@@ -28,17 +30,16 @@
         if (jsonData.name === '' || jsonData.date_of_birth === '' || jsonData.ssn === '') {
             errorClass = 'input-error';
         } else {
-            const response = await api('post', `onboarding/account_info`, jsonData);
-            if (response.status === 200) {
-                $registerData = await response.json();
-                $:console.log("Offer dta", $registerData)
-                await goto('/createpassword');
+            const response = await api('post', `onboarding/register`, jsonData);
+            let rjson = await response.json()
+            console.log(rjson);
+            errorStatus = !rjson.status
+            if (rjson.status) {
+                $registerData = jsonData;
+                // await goto('/createpassword');
             } else {
-                console.log('error', response);
-                //notifications.danger('Something wrong', 2000)
+                errorMessage = rjson.message
             }
-
-            //goto('/personinfo')
         }
     }
 </script>
@@ -59,10 +60,16 @@
                         </div>
                         <p class="mt-2 text-[#717782] flex w-[13rem] mx-auto items-center text-center mt-6">Please enter
                             the following to get started</p>
+                        {#if errorStatus}
+                            <p class="mt-2 text-[#717782] flex w-[13rem] mx-auto items-center text-center mt-6 text-error">{errorMessage}</p>
+                        {/if}
                     </div>
                     <div class="btnHide">
                         <h1 class="title-font  text-gray-900 text-4xl font-bold">Create Account</h1>
                         <p class="mt-2 text-base">Please enter the following to get started</p>
+                        {#if errorStatus}
+                            <p class="mt-2 text-base text-error">{errorMessage}</p>
+                        {/if}
                     </div>
                     <div class="mt-5">
                         <div class="form-control w-full max-w-s">

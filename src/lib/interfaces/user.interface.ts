@@ -4,11 +4,13 @@ export interface Token {
 }
 
 export interface UserRegister {
-	acc_name?: string;
+	//acc_name?: string;
 	name?: string;
+	first_name?: string;
+	last_name?: string;
 	date_of_birth?: string;
 	ssn?: string;
-	full_name?: string;
+	customer_name?: string;
 	email_id?: string;
 	phone?: string;
 	phone_type?: string;
@@ -17,6 +19,8 @@ export interface UserRegister {
 	state?: string;
 	pincode?: string;
 	password?: string;
+	customer_primary_address?: string;
+	customer_primary_contact?: string;
 	//offer?: number;
 }
 export interface User {
