@@ -23,7 +23,7 @@
 	});
 	onMount(async () => {
 		if(Object.keys($userData1).length > 0 ){
-			 await goto('/dashboard');
+			 // await goto('/dashboard');
 		}
 	})
 

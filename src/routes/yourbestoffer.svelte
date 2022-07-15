@@ -2,46 +2,55 @@
     import {goto} from "$app/navigation";
     import {onMount} from "svelte";
     import {api} from "../lib/_api";
-    import {registerData} from "../lib/store/registerStore.ts";
+    import {userInfo} from "../lib/store/UserInfoStore.ts";
+    import {isOpenModal} from "../lib/store/modalStore.ts";
+    import Modal from "../components/Modal/Modal.svelte";
+    import {InlineCalendar} from "svelte-calendar";
+    import dayjs from 'dayjs';
+    import { notificationData } from '$lib/store/notificationStore';
+let store;
+    const theme = {
+        calendar: {
+            width: '500px',
+            shadow: '0px 0px 5px rgba(0, 0, 0, 0.25)'
+        }
+    };
+    // $:console.log("datte",dayjs($store?.selected).format('MM/DD/YYYY'))
 
-    let offerData,selectOffer=';'
-    let userData=$registerData;
+    const openModal = () => {
+        return true;
+    };
+
+    let offerData, selectOffer = ';'
+    let userData = $userInfo;
     const cardd = [1, 2, 3, 4, 5]
-    let previousData ={};
-    onMount(()=>{
-        previousData = {...$registerData};
-        if(previousData==={} || previousData.acc_name===undefined || previousData.ssn===undefined){
+    let previousData = {};
+    onMount(async () => {
+        previousData = {...$userInfo};
+        if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
             goto('/register');
-        }else if(previousData.email_id===undefined || previousData.phone===undefined || previousData.full_name===undefined) {
+        } else if (previousData?.address?.email_id === undefined || previousData?.address?.phone === undefined || previousData?.customer?.customer_name === undefined) {
             goto('/personinfo');
         }
     })
-    onMount(async () => {
-        const response = await api('get', `resource/Payment%20Term`);
-        if (response.status === 200) {
-            offerData = await response.json();
-            console.log(offerData, "Offer dta")
-        } else {
-            console.log('error', response);
-            //notifications.danger('Something wrong', 2000)
-        }
-    })
+    // onMount(async () => {
+    //     const response = await api('get', `resource/Payment%20Term`);
+    //     if (response.status === 200) {
+    //         offerData = await response.json();
+    //         console.log(offerData, "Offer dta")
+    //     } else {
+    //         console.log('error', response);
+    //         //notifications.danger('Something wrong', 2000)
+    //     }
+    // })
     const handleSave = async () => {
-        const response = await api('post', `method/tare_financial.tare_financial.doctype.user.user.register`, userData);
-        if (response.status === 200) {
-            $registerData = {};
-            console.log("response", response.json());
-            // goto('/docusign')
-        } else {
-            console.log('error', response);
-            //notifications.danger('Something wrong', 2000)
-        }
+        $notificationData = "Congrats, you've completed the process."
     }
 
     const handleSelectOffer = (index) => {
-        selectOffer=index;
+        selectOffer = index;
+        isOpenModal.set(true)
     }
-    console.log('data=',$registerData)
 </script>
 <section class="h-screen flex">
     <div class="m-auto">
@@ -53,27 +62,32 @@
                         <div class="flex lg:flex-row flex-col">
                             <div class="basis-1/2">
                                 <div class="flex justify-between sm:text-sm lg:text-base">Name: <span
-                                        class="text-[#717782]">{userData?.full_name}</span></div>
+                                        class="text-[#717782]">{userData?.customer?.customer_name}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">DOB: <span
-                                        class="text-[#717782]">{userData?.date_of_birth}</span></div>
+                                        class="text-[#717782]">{userData?.register?.date_of_birth}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">SSN: <span
-                                        class="text-[#717782]">{userData?.ssn}</span></div>
+                                        class="text-[#717782]">{userData?.register?.ssn}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">Phone Number: <span
-                                        class="text-[#717782]">{userData?.phone}</span></div>
+                                        class="text-[#717782]">{userData?.address?.phone}</span></div>
                                 <div class="flex justify-between sm:text-sm lg:text-base">Address: <span
-                                        class="text-[#717782]">{userData?.address_line1}, {userData?.city}, {userData?.state}, {userData?.pincode}</span></div>
+                                        class="text-[#717782]">{userData?.address?.address_line1}
+                                    , {userData?.address?.city}, {userData?.address?.state}
+                                    , {userData?.address?.pincode}</span></div>
                             </div>
                             <div class="divider lg:divider-horizontal divider-vertical"></div>
                             <div class="basis-1/2">
                                 <div class="flex justify-between">Creditor: <span
-                                        class="text-[#717782]">XYZ Bank, Inc.</span></div>
-                                <div class="flex justify-between">Creditor Account: <span class="text-[#717782]">{userData?.acc_name}</span>
+                                        class="text-[#717782]">{userData?.project?.original_creditor}</span></div>
+                                <div class="flex justify-between">Creditor Account: <span
+                                        class="text-[#717782]">{userData?.project?.creditor_account_number}</span>
                                 </div>
                                 <div class="flex justify-between">Opening Date: <span
-                                        class="text-[#717782]">01/01/2019</span></div>
-                                <div class="flex justify-between">Chargeoff Date: <span class="text-[#717782]">01/01/2019</span>
+                                        class="text-[#717782]">{userData?.project?.account_open}</span></div>
+                                <div class="flex justify-between">Chargeoff Date: <span
+                                        class="text-[#717782]">{userData?.project?.charge_off_date}</span>
                                 </div>
-                                <div class="flex justify-between">Chargeoff Amount: <span class="text-[#717782]">$22,675.00</span>
+                                <div class="flex justify-between">Chargeoff Amount: <span
+                                        class="text-[#717782]">{userData?.project?.unadjusted_amount}</span>
                                 </div>
                             </div>
                         </div>
@@ -94,7 +108,7 @@
                                 <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">45% forgiven</h2>
                                 <h2 class="text-center text-sm font-medium mt-3 px-4">Make payment within 1 week</h2>
                                 <button class={`btn btn-primary w-52 mt-10 ${selectOffer===index?'':'btn-outline'}`}
-                                        on:click={()=>{handleSelectOffer(index)}}>Select
+                                        on:click={() =>handleSelectOffer(index)}>Select
                                 </button>
                             </div>
                         {/each}
@@ -121,7 +135,9 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn lg:btn-wide sm:w-full btn-outline btn-primary" on:click={()=>goto('https://tarefinancial.com/contact')}>Contact Us</button>
+                            <button class="btn lg:btn-wide sm:w-full btn-outline btn-primary"
+                                    on:click={()=>goto('https://tarefinancial.com/contact')}>Contact Us
+                            </button>
                         </div>
                         <div>
                             <button class="btn lg:btn-wide sm:w-full btn-primary" on:click={()=>{handleSave()}}>
@@ -133,4 +149,9 @@
             </div>
         </div>
     </div>
+    {#if $isOpenModal}
+        <Modal>
+            <InlineCalendar  bind:store {theme}/>
+        </Modal>
+    {/if}
 </section>

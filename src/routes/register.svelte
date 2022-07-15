@@ -1,44 +1,49 @@
 <script lang="ts">
     import {goto} from '$app/navigation';
-    import {registerData} from "../lib/store/registerStore";
     import {onMount} from "svelte";
     import {api} from "../lib/_api";
+    import {userInfo} from "../lib/store/UserInfoStore";
 
     let regex = /^(?:[a-zA-Z]){1}[-](?:[a-zA-Z]){3}[-](?:\d){2}[-](?:\d){5}$/s;
     let accValidation = '';
 
     const regCheck = (e) => {
         accValidation = '';
-        if (!regex.test(e)) {
+        if (!regex.test(e.target.value)) {
             accValidation = 'please match the format. e.g., C-XXX-00-00000';
         }
     }
-    let jsonData = {
+    let jsonData = {register:{
         name: '',
         date_of_birth: '',
         ssn: '',
-    }
+    }}
     let errorClass = '';
     let errorStatus = false;
     let errorMessage = '';
     onMount(() => {
-        if (Object.keys($registerData).length !== 0) {
-            jsonData = {...$registerData};
+        if (Object.keys($userInfo).length !== 0) {
+            jsonData = {...$userInfo};
         }
     });
     const handleRegSave = async () => {
-        if (jsonData.name === '' || jsonData.date_of_birth === '' || jsonData.ssn === '') {
+        accValidation = '';
+        if (jsonData.register.name === '' || jsonData.register.date_of_birth === '' || jsonData.register.ssn === '') {
             errorClass = 'input-error';
-        } else {
-            const response = await api('post', `onboarding/register`, jsonData);
+        }
+        else if (!regex.test(jsonData.register.name)) {
+            errorClass = 'input-error';
+            accValidation = 'please match the format. e.g., C-XXX-00-00000';
+        }
+        else {
+            const response = await api('post', `onboarding/register`, jsonData.register);
             let rjson = await response.json()
-            console.log(rjson);
             errorStatus = !rjson.status
             if (rjson.status) {
-                $registerData = jsonData;
-                // await goto('/createpassword');
+                $userInfo = {...rjson.data,...jsonData};
+                await goto('/createpassword');
             } else {
-                errorMessage = rjson.message
+                errorMessage = rjson.data.message
             }
         }
     }
@@ -76,24 +81,24 @@
                             <label class="label">
                                 <span class="title-font">Account Number</span>
                             </label>
-                            <input type="text" placeholder="C-XXX-00-00000" bind:value={jsonData.name}
-                                   on:change={(e)=> regCheck(e.target.value)}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.name===''?errorClass:''}`}/>
+                            <input type="text" placeholder="C-XXX-00-00000" bind:value={jsonData.register.name}
+                                   on:input={(e)=> regCheck(e)}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.register.name===''?errorClass:''}`}/>
                             <p class="text-red-700 mt-1 text-xs">{accValidation}</p>
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="title-font">Birth Date</span>
                             </label>
-                            <input type="date" bind:value={jsonData.date_of_birth}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.date_of_birth===''?errorClass:''}`}/>
+                            <input type="date" bind:value={jsonData.register.date_of_birth}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.register.date_of_birth===''?errorClass:''}`}/>
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="title-font">The last 4 digits of your SSN</span>
                             </label>
-                            <input type="text" placeholder="****" bind:value={jsonData.ssn} maxlength="4"
-                                   class={`input input-bordered w-full max-w-s ${jsonData.ssn===''?errorClass:''}`}/>
+                            <input type="text" placeholder="****" bind:value={jsonData.register.ssn} maxlength="4"
+                                   class={`input input-bordered w-full max-w-s ${jsonData.register.ssn===''?errorClass:''}`}/>
                         </div>
                     </div>
                     <button class="btn btn-primary w-full mt-10" on:click={()=>handleRegSave()}>Continue</button>

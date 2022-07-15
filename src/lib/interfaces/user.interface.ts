@@ -35,6 +35,56 @@ export interface User {
 	is_staff?: boolean;
 }
 
+export interface UserInfo {
+	register:{
+		name?: string;
+		date_of_birth?: string;
+		ssn?: string;
+	},
+	customer: {
+		doctype?: string,
+		name?: string,
+		customer_name?: string,
+		customer_primary_address?: string,
+		customer_primary_contact?: string
+	},
+	contact: {
+		doctype: string,
+		name?: string,
+		first_name?: string,
+		last_name?: string,
+		email_id?: string ,
+		phone?: string
+	},
+	address: {
+		doctype?: string,
+		name?: string ,
+		address_line1?: string ,
+		city?: string ,
+		state?: string ,
+		phone?: string,
+		email_id?:string,
+		pincode?: string
+	},
+	user: {
+		doctype?: string,
+		name?: string ,
+		first_name?: string ,
+		last_name?: string ,
+		email?: string ,
+		new_password?: string
+	},
+	project: {
+		doctype?:string,
+		name?:string,
+		original_creditor?:string,
+		creditor_account_number?:string,
+		account_open?:string,
+		charge_off_date?:string,
+		unadjusted_amount?:string,
+	}
+}
+
 export interface UserResponse {
 	user?: User;
 }

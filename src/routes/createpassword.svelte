@@ -1,11 +1,22 @@
 <script>
-    import {goto} from '$app/navigation';
-    import {registerData} from "../lib/store/registerStore.ts";
+    import { goto } from '$app/navigation';
+    import {userInfo} from "../lib/store/UserInfoStore.ts";
 
     let password = '';
-    const handleCreatePassword = async () => {
-        $registerData.password = password;
-        await goto('/personinfo');
+    let regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{4,}$/s;
+    let accValidation = '';
+    let errorClass='';
+
+    const handleCreatePassword = () => {
+        errorClass = '';
+        if (!regex.test(password)) {
+            errorClass = 'input-error';
+            accValidation = 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character';
+        }  else {
+            accValidation = '';
+            $userInfo.user.new_password = password;
+            goto('/personinfo');
+        }
     };
 </script>
 <div>
@@ -25,10 +36,8 @@
                         <label class="label">
                             <span class="text-base font-medium text-gray-900 mb-1">Create your password</span>
                         </label>
-                        <input type="password" placeholder="Password" bind:value={password}
-                               class="input input-bordered w-full max-w-s"/>
-                        <label class="label">
-                        </label>
+                        <input type="password" placeholder="Password" bind:value={password} class="{`input input-bordered w-full max-w-s ${password==='' || errorClass!== '' ?  errorClass:''} `}"/>
+                        <p class="text-red-700 mt-1 text-xs">{accValidation}</p>
                     </div>
                 </div>
                 <button class="btn btn-primary w-full self-end mt-24" on:click={()=>handleCreatePassword()}>

@@ -1,4 +1,6 @@
 <script>
+	import {userInfo} from "../../lib/store/UserInfoStore.ts";
+
 	const items=[1,2,3,4,5,6];
 </script>
 <svelte:head>
@@ -24,24 +26,24 @@
 					<table class="table table-compact w-full bg-white text-sm">
 						<tbody>
 						<tr>
-							<td>Rate Category</td>
-							<td class="t-color">test</td>
+							<td>Creditor:</td>
+							<td class="t-color">{$userInfo?.project.original_creditor}</td>
 						</tr>
 						<tr>
-							<td>LOR From</td>
-							<td class="t-color">test</td>
+							<td>Creditor Account:</td>
+							<td class="t-color">{$userInfo?.project.creditor_account_number}</td>
 						</tr>
 						<tr>
-							<td>Date From</td>
-							<td class="t-color">test</td>
+							<td>Opening Date:</td>
+							<td class="t-color">{$userInfo?.project.account_open}</td>
 						</tr>
 						<tr>
-							<td>Time From</td>
-							<td class="t-color">test</td>
+							<td>Chargeoff Date:</td>
+							<td class="t-color">{$userInfo?.project.charge_off_date}</td>
 						</tr>
 						<tr>
-							<td>Time From</td>
-							<td class="t-color">test</td>
+							<td>Chargeoff Amount:</td>
+							<td class="t-color">${$userInfo?.project.unadjusted_amount}</td>
 						</tr>
 						</tbody>
 					</table>

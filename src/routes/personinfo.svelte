@@ -1,49 +1,89 @@
 <script lang="ts">
     import {goto} from "$app/navigation";
-    import {registerData} from "../lib/store/registerStore.ts";
     import {onMount} from "svelte";
-    import {api} from "../lib/_api";
+    import {userInfo} from "../lib/store/UserInfoStore";
 
     const states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'Washington, D.C.', 'West Virginia', 'Wisconsin', 'Wyoming'];
     let jsonData = {
-        customer_name: '', email_id: '', phone: '', phone_type: '',customer_primary_contact: '',
-        address_line1: '', city: '', state: '', pincode: '', first_name: '', last_name: '',customer_primary_address: '',
+        'customer': {
+            'doctype': '',
+            'name': '',
+            'customer_name': '',
+            'customer_primary_address': '',
+            'customer_primary_contact': ''
+        },
+        'contact': {
+            'doctype': '',
+            'name': '',
+            'first_name': '',
+            'last_name': '',
+            'email_id': '',
+            'phone': ''
+        },
+        'address': {
+            'doctype': '',
+            'name': '',
+            'address_line1': '',
+            'city': '',
+            'state': '',
+            'email_id': '',
+            'phone': '',
+            'pincode': ''
+        },
+        'user': {
+            'doctype': '',
+            'name': '',
+            'first_name': '',
+            'last_name': '',
+            'email': '',
+            'new_password': ''
+        },
+        "project": {
+            'doctype': "",
+            'name': '',
+            'original_creditor': '',
+            'creditor_account_number': '',
+            'account_open': '',
+            'charge_off_date': '',
+            'unadjusted_amount': '',
+        },
+        "register": {
+            'name': '',
+            'date_of_birth': '',
+            'ssn': '',
+        }
     };
+    let disabledInfo = true;
     let errorClass = '';
-    let previousData ={name: undefined, ssn: undefined};
-    // onMount(()=>{
-    //     previousData = {...$registerData};
-    //     if(previousData==={} || previousData.acc_name===undefined || previousData.ssn===undefined){
-    //         goto('/register');
-    //     }
-    // })
-    onMount(async () => {
-        if ($registerData !== {}) {
-            jsonData = {...$registerData};
+    let previousData = {register: {name: undefined, ssn: undefined}};
+    onMount(() => {
+        previousData = {...$userInfo};
+        console.log('Data', previousData)
+        if (previousData === {} || previousData?.register?.name === undefined || previousData?.register?.ssn === undefined) {
+            goto('/register');
         }
-        const response = await api('post', `onboarding/personInfo`, {"name": $registerData.name});
-        if (response.status === 200) {
-            const data=await response.json();
-            jsonData={...data.response.customer[0],...data.response.address[0],...data.response.contact[0],...$registerData};
-            //$registerData = jsonData;
-            //await goto('/createpassword');
-        } else {
-            console.log('error', response);
-            //notifications.danger('Something wrong', 2000)
+        else{
+            if ($userInfo !== {}) {
+                jsonData = {...$userInfo};
+            }
         }
-    });
+    })
     const handleSave = () => {
-        if (jsonData.customer_name === '' || jsonData.email_id === '' || jsonData.phone === '' || jsonData.phone_type === '' ||
-            jsonData.address_line1 === '' || jsonData.city === '' || jsonData.state === '' || jsonData.pincode === '') {
+        if (jsonData.customer.customer_name === '' || jsonData.address.email_id === '' || jsonData.address.phone === '' ||
+            jsonData.address.address_line1 === '' || jsonData.address.city === '' || jsonData.address.state === '' || jsonData.address.pincode === '') {
             errorClass = '-error';
         } else {
-            $registerData={...jsonData};
+            jsonData.user.name=jsonData.customer.name;
+            jsonData.user.email=jsonData.address.email_id;
+            jsonData.user.first_name=jsonData.contact.first_name;
+            jsonData.user.last_name=jsonData.contact.last_name;
+            $userInfo = jsonData;
             goto('/yourbestoffer')
         }
     }
-    const handleEdit = () =>{
+    const handleEdit = () => {
+        disabledInfo = false;
     };
-    $:console.log('data1=',jsonData)
 </script>
 <div class="h-screen flex sm:bg-white lg:bg-base-200">
     <div class="m-auto">
@@ -54,99 +94,96 @@
                     <p class="mt-2 sm:text-sm lg:text-base">We’ve located your account. Please review and confirm your
                         contact information:</p>
                 </div>
-                <div class=" flex grid grid-cols-2 gap-2">
-                    <div>
-                        <div class="form-control w-full max-w-s">
-                            <label class="label">
-                                <span class="text-base font-medium text-gray-900">Full Name</span>
-                            </label>
-                            <input type="text" placeholder="John Smith" bind:value={jsonData.customer_name}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.customer_name===''?('input'+errorClass):''}`}/>
-                        </div>
-                        <div class="form-control w-full max-w-s">
-                            <label class="label">
-                                <span class="text-base font-medium text-gray-900 ">Street</span>
-                            </label>
-                            <input type="text" placeholder="123 Fake Street" bind:value={jsonData.address_line1}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.address_line1===''?('input'+errorClass):''}`}/>
-                        </div>
-                        <div class="flex flex-row gap-2">
-                            <div class="basis-4/12">
-                                <div class="form-control w-full max-w-s">
-                                    <label class="label">
-                                        <span class="text-base font-medium text-gray-900 ">City</span>
-                                    </label>
-                                    <input type="text" placeholder="New York" bind:value={jsonData.city}
-                                           class={`input input-bordered w-full max-w-s ${jsonData.city===''?('input'+errorClass):''}`}/>
-                                </div>
-                            </div>
-                            <div class="basis-4/12">
-                                <div class="form-control w-full max-w-s">
-                                    <label class="label">
-                                        <span class="text-base font-medium text-gray-900 ">State</span>
-                                    </label>
-                                    <select class={`select select-bordered ${jsonData.state===''?('select'+errorClass):''}`}
-                                            bind:value={jsonData.state}>
-                                        <option value="" disabled selected>Select</option>
-                                        {#each states as state}
-                                            <option value={state}>{state}</option>
-                                        {/each}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="basis-4/12">
-                                <div class="form-control w-full max-w-s">
-                                    <label class="label">
-                                        <span class="text-base font-medium text-gray-900 ">Code</span>
-                                    </label>
-                                    <input type="text" placeholder="10001" bind:value={jsonData.pincode}
-                                           class={`input input-bordered w-full max-w-s ${jsonData.pincode===''?('input'+errorClass):''}`}/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
+                <div class="form-control w-full max-w-s">
+                    <label class="label">
+                        <span class="text-base font-medium text-gray-900">Full Name</span>
+                    </label>
+                    <input type="text" placeholder="John Smith" bind:value={jsonData.customer.customer_name}
+                           disabled={disabledInfo}
+                           class={`input input-bordered w-full max-w-s ${jsonData.customer.customer_name===''?('input'+errorClass):''}`}/>
+                </div>
+                <div class="flex flex-row gap-2">
+                    <div class="basis-1/2">
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="text-base font-medium text-gray-900">First Name</span>
                             </label>
-                            <input type="text" placeholder="John Smith" bind:value={jsonData.first_name}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.first_name===''?('input'+errorClass):''}`}/>
+                            <input type="text" placeholder="John Smith" bind:value={jsonData.contact.first_name}
+                                   disabled={disabledInfo}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.contact.first_name===''?('input'+errorClass):''}`}/>
                         </div>
+                    </div>
+                    <div class="basis-1/2">
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="text-base font-medium text-gray-900">Last Name</span>
                             </label>
-                            <input type="text" placeholder="John Smith" bind:value={jsonData.last_name}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.last_name===''?('input'+errorClass):''}`}/>
+                            <input type="text" placeholder="John Smith" bind:value={jsonData.contact.last_name}
+                                   disabled={disabledInfo}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.contact.last_name===''?('input'+errorClass):''}`}/>
                         </div>
+                    </div>
+                </div>
+                <div class="form-control w-full max-w-s">
+                    <label class="label">
+                        <span class="text-base font-medium text-gray-900">Email</span>
+                    </label>
+                    <input type="text" placeholder="john@gmail.com" bind:value={jsonData.address.email_id}
+                           disabled={disabledInfo}
+                           class={`input input-bordered w-full max-w-s ${jsonData.contact.email_id===''?('input'+errorClass):''}`}/>
+                </div>
+                <div class="form-control w-full max-w-s">
+                    <label class="label">
+                        <span class="text-base font-medium text-gray-900 ">Phone number</span>
+                    </label>
+                    <input type="text" placeholder="646-100-1000" bind:value={jsonData.address.phone}
+                           disabled={disabledInfo}
+                           class={`input input-bordered w-full max-w-s ${jsonData.contact.phone===''?('input'+errorClass):''}`}/>
+                </div>
+                <div class="form-control w-full max-w-s">
+                    <label class="label">
+                        <span class="text-base font-medium text-gray-900 ">Street</span>
+                    </label>
+                    <input type="text" placeholder="123 Fake Street" bind:value={jsonData.address.address_line1}
+                           disabled={disabledInfo}
+                           class={`input input-bordered w-full max-w-s ${jsonData.address.address_line1===''?('input'+errorClass):''}`}/>
+                </div>
+                <div class="flex lg:flex-row sm:flex-col gap-2">
+                    <div class="lg:basis-4/12 sm:basis-1">
                         <div class="form-control w-full max-w-s">
                             <label class="label">
-                                <span class="text-base font-medium text-gray-900 ">Phone number</span>
+                                <span class="text-base font-medium text-gray-900 ">City</span>
                             </label>
-                            <div class="flex flex-row gap-2">
-                                <div class="basis-3/4">
-                                    <input type="text" placeholder="646-100-1000" bind:value={jsonData.phone}
-                                           class={`input input-bordered w-full max-w-s ${jsonData.phone===''?('input'+errorClass):''}`}/>
-                                </div>
-                                <div class="form-control w-full max-w-s basis-1/4">
-                                    <select class={`select select-bordered ${jsonData.phone_type===''?('select'+errorClass):''}`}
-                                            bind:value={jsonData.phone_type}>
-                                        <option value="" disabled selected>Select</option>
-                                        <option value="Mobile">Mobile</option>
-                                        <option value="Home Landline">Home Landline</option>
-                                        <option value="Work Landline">Work Landline</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <input type="text" placeholder="New York" bind:value={jsonData.address.city}
+                                   disabled={disabledInfo}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.address.city===''?('input'+errorClass):''}`}/>
                         </div>
+                    </div>
+                    <div class="lg:basis-4/12 sm:basis-1">
                         <div class="form-control w-full max-w-s">
                             <label class="label">
-                                <span class="text-base font-medium text-gray-900">Email</span>
+                                <span class="text-base font-medium text-gray-900 ">State</span>
                             </label>
-                            <input type="text" placeholder="john@gmail.com" bind:value={jsonData.email_id}
-                                   class={`input input-bordered w-full max-w-s ${jsonData.email_id===''?('input'+errorClass):''}`}/>
+                            <select class={`select select-bordered ${jsonData.address.state===''?('select'+errorClass):''}`}
+                                    disabled={disabledInfo}
+                                    bind:value={jsonData.address.state}>
+
+                                <option value="" disabled selected>Select</option>
+                                {#each states as state}
+                                    <option value={state}>{state}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="lg:basis-4/12 sm:basis-1">
+                        <div class="form-control w-full max-w-s">
+                            <label class="label">
+                                <span class="text-base font-medium text-gray-900 ">Code</span>
+                            </label>
+                            <input type="text" placeholder="10001" bind:value={jsonData.address.pincode}
+                                   disabled={disabledInfo}
+                                   class={`input input-bordered w-full max-w-s ${jsonData.address.pincode===''?('input'+errorClass):''}`}/>
                         </div>
                     </div>
                 </div>

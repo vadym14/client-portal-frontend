@@ -6,7 +6,7 @@ const api = new ZecsnExtAPI();
 //get customer
 export async function post({request}: any) {
     const data = await request.json();
-    let response = {}
+    let response:any = {}
     const customer: any = await api.getDoc('Customer', data.name)
     if (customer) {
         response['customer'] = {

@@ -6,29 +6,26 @@
     import {notificationData} from "../lib/store/notificationStore";
     import { goto } from "$app/navigation";
 
-
-
-    const base = variables.BASE_API_URI;
-    let lastName = '', accountNbr = '', password = '', errorClass='',btnDisable=false,
+    let email = '', name = '', password = '', errorClass='',btnDisable=false,
         btnLoading=false;
         // errors: Array<CustomError>;
     const handleLogin=async () => {
         $userData1 = {
-            lastName: lastName,
-            accountNbr: accountNbr,
+            email: email,
+            name: name,
             password: password
         };
         goto('/dashboard')
         btnDisable = true;
         btnLoading = true;
-        if (lastName === '' || accountNbr === '' || password === '') {
+        if (email === '' || name === '' || password === '') {
             errorClass = '-error';
             btnDisable = false;
             btnLoading = false;
         }else {
             const jsonData={
-                lastname: lastName,
-                usr:accountNbr,
+                lastname: email,
+                usr:name,
                 pwd:password
             }
             const response = await api('POST', `method/login`,jsonData);
@@ -36,6 +33,7 @@
                 notificationData.update(() => 'Login successful...');
                 const data=await response.json();
                 userData1.set(data);
+                // $userInfo = {...rjson.data}
                 await goto('/dashboard');
             }else {
                 console.log('error',response);
@@ -59,15 +57,15 @@
                             <label class="label">
                                 <span class="title-font">Last Name</span>
                             </label>
-                            <input type="text" bind:value={lastName} placeholder="Please enter your last name"
-                                   class={`input input-bordered w-full max-w-s ${lastName===''? 'input'+errorClass:''}`} />
+                            <input type="text" bind:value={email} placeholder="Please enter your last name"
+                                   class={`input input-bordered w-full max-w-s ${email===''? 'input'+errorClass:''}`} />
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="title-font font-medium text-gray-900">Account Number</span>
                             </label>
-                            <input type="text" bind:value={accountNbr} placeholder="C-XXX-00-00000"
-                                   class={`input input-bordered w-full max-w-s ${accountNbr===''?'input'+errorClass:''}`} />
+                            <input type="text" bind:value={name} placeholder="C-XXX-00-00000"
+                                   class={`input input-bordered w-full max-w-s ${name===''?'input'+errorClass:''}`} />
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
@@ -114,15 +112,15 @@
                                     <label class="label">
                                         <span class="title-font">Last Name</span>
                                     </label>
-                                    <input type="text" bind:value={lastName} placeholder="Please enter your last name"
-                                           class={`input input-bordered w-full max-w-s ${lastName===''?'input'+errorClass:''}`} />
+                                    <input type="text" bind:value={email} placeholder="Please enter your last name"
+                                           class={`input input-bordered w-full max-w-s ${email===''?'input'+errorClass:''}`} />
                                 </div>
                                 <div class="form-control w-full max-w-s">
                                     <label class="label">
                                         <span class="title-font">Account Number</span>
                                     </label>
-                                    <input type="text" bind:value={accountNbr} placeholder="C-XXX-00-00000"
-                                           class={`input input-bordered w-full max-w-s ${accountNbr===''?'input'+errorClass:''}`}/>
+                                    <input type="text" bind:value={name} placeholder="C-XXX-00-00000"
+                                           class={`input input-bordered w-full max-w-s ${name===''?'input'+errorClass:''}`}/>
                                 </div>
                                 <div class="form-control w-full max-w-s">
                                     <label class="label">
