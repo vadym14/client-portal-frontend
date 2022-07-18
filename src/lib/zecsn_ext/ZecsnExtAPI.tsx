@@ -10,11 +10,12 @@ class ZecsnExtAPI {
         'Content-Type': 'application/json',
         Authorization: `token ${this.API_KEY}:${this.API_SECRET}`, //Server Token
     };
+    _server_messages = []
 
-    userHeaders = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        cookie: ''
+    getServerMessages = async (): Promise<any> => {
+        const _server_messages = this._server_messages
+        this._server_messages = []
+        return _server_messages;
     };
 
     login = async (
@@ -23,31 +24,33 @@ class ZecsnExtAPI {
     ): Promise<Object | Array<any>> => {
         const res = await fetch(`${this.BASE_URL}/api/method/login`, {
             method: 'POST',
-            headers: this.userHeaders,
+            headers: this.headers,
             body: this.preProcess({'usr': usr, 'pwd': pwd}),
         });
         const status = await this.postProcess(res)
-        if (status === 'Logged In') {
-            this.userHeaders.cookie = this.parseCookies(res)
-            return {'status': true, 'data': this.userHeaders.cookie}
+        if (status === 'Logged In' || status === 'No App') {
+            return {'status': true, 'data': this.parseCookies(res)}
         } else {
-            this.userHeaders.cookie = ''
+            Array.prototype.push.apply(this._server_messages, [{'message': status, 'indicator': 'red'}])
             return {'status': false, 'data': status}
         }
     };
 
-    getLoggedInUser = async (): Promise<any> => {
+    getLoggedInUser = async (cookies: string): Promise<any> => {
+        this.headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/frappe.auth.get_logged_user`, {
             method: 'GET',
-            headers: this.userHeaders,
+            credentials: 'include',
+            headers: this.headers,
         });
         return this.postProcess(res);
     };
 
-    logout = async (): Promise<any> => {
+    logout = async (cookies: string): Promise<any> => {
+        this.headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/logout`, {
             method: 'GET',
-            headers: this.userHeaders,
+            headers: this.headers,
         });
         return this.postProcess(res);
     };
@@ -283,11 +286,9 @@ class ZecsnExtAPI {
         }
         if ('_server_messages' in rjson) {
             let messages = JSON.parse(rjson['_server_messages'])
-            // Todo Improve Error Handling
-            const errors = messages.map(m => {
+            Array.prototype.push.apply(this._server_messages, messages.map(m => {
                 return JSON.parse(m)
-            })
-            console.log(errors)
+            }))
         }
         if ('message' in rjson)
             return rjson['message']

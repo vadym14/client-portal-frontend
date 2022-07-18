@@ -58,7 +58,6 @@
     let previousData = {register: {name: undefined, ssn: undefined}};
     onMount(() => {
         previousData = {...$userInfo};
-        console.log('Data', previousData)
         if (previousData === {} || previousData?.register?.name === undefined || previousData?.register?.ssn === undefined) {
             goto('/register');
         }

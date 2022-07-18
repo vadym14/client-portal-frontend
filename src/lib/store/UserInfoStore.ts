@@ -1,10 +1,10 @@
-import { writable } from 'svelte/store';
-import type { UserInfo } from '$lib/interfaces/user.interface';
+import {writable} from 'svelte/store';
+import type {UserInfo} from '$lib/interfaces/user.interface';
 import {browser} from "$app/env";
 
 const storedData = JSON.parse(browser && localStorage.getItem('userinfo') || `{}`);
 //register: {},customer:{},contact:{},address:{},user:{}
-export const userInfo = writable<UserInfo>(browser && storedData ||{
+export const userInfo = writable<UserInfo>(browser && storedData || {
     'customer': {
         'doctype': '',
         'name': '',
@@ -38,20 +38,34 @@ export const userInfo = writable<UserInfo>(browser && storedData ||{
         'email': '',
         'new_password': ''
     },
-    "project":{
-        'doctype':"",
-        'name':'',
-        'original_creditor':'',
-        'creditor_account_number':'',
-        'account_open':'',
-        'charge_off_date':'',
-        'unadjusted_amount':'',
+    "project": {
+        'doctype': "",
+        'name': '',
+        'original_creditor': '',
+        'creditor_account_number': '',
+        'account_open': '',
+        'charge_off_date': '',
+        'unadjusted_amount': '',
+        'selected_plan': '',
+        'plan_1': '',
+        'plan_2': '',
+        'plan_3': '',
+        'plan_4': '',
+        'plan_5': '',
     },
-    "register":{
-        'name':'',
-        'date_of_birth':'',
-        'ssn':'',
+    "plans": [{
+        'name': '',
+        'settlement_amount': '',
+        'forgiven_percentage': '',
+        'total_terms': '',
+        'docusign_template': '',
+        'credit_duration': '',
+    }],
+    "register": {
+        'name': '',
+        'date_of_birth': '',
+        'ssn': '',
     }
 });
 
-userInfo.subscribe( (val) => browser && (localStorage.userinfo = JSON.stringify(val))); // save to local storage for persistence;
+userInfo.subscribe((val) => browser && (localStorage.userinfo = JSON.stringify(val))); // save to local storage for persistence;

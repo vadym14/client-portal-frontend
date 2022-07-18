@@ -6,16 +6,16 @@
     import {isOpenModal} from "../lib/store/modalStore.ts";
     import Modal from "../components/Modal/Modal.svelte";
     import {InlineCalendar} from "svelte-calendar";
-    import dayjs from 'dayjs';
-    import { notificationData } from '$lib/store/notificationStore';
-let store;
+    import {handleServerMessages} from "$lib/utils/handleServerMessages";
+    import {toast} from "@zerodevx/svelte-toast";
+
+    let store;
     const theme = {
         calendar: {
             width: '500px',
             shadow: '0px 0px 5px rgba(0, 0, 0, 0.25)'
         }
     };
-    // $:console.log("datte",dayjs($store?.selected).format('MM/DD/YYYY'))
 
     const openModal = () => {
         return true;
@@ -23,9 +23,15 @@ let store;
 
     let offerData, selectOffer = ';'
     let userData = $userInfo;
-    const cardd = [1, 2, 3, 4, 5]
     let previousData = {};
     onMount(async () => {
+        offerData = {
+            plan_1: $userInfo.project?.plan_1,
+            plan_2: $userInfo.project?.plan_2,
+            plan_3: $userInfo.project?.plan_3,
+            plan_4: $userInfo.project?.plan_4,
+            plan_5: $userInfo.project?.plan_5,
+        }
         previousData = {...$userInfo};
         if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
             goto('/register');
@@ -33,23 +39,24 @@ let store;
             goto('/personinfo');
         }
     })
-    // onMount(async () => {
-    //     const response = await api('get', `resource/Payment%20Term`);
-    //     if (response.status === 200) {
-    //         offerData = await response.json();
-    //         console.log(offerData, "Offer dta")
-    //     } else {
-    //         console.log('error', response);
-    //         //notifications.danger('Something wrong', 2000)
-    //     }
-    // })
     const handleSave = async () => {
-        $notificationData = "Congrats, you've completed the process."
+        const response = await api('post', `onboarding/finale`, $userInfo);
+        let rjson = await response.json()
+        handleServerMessages(rjson.data._server_messages)
+        if (rjson.status) {
+            toast.push("Congrats, you've completed the process.", {
+                theme: {
+                    '--toastBackground': '#48BB78',
+                    '--toastBarBackground': '#2F855A'
+                }
+            })
+        }
     }
 
     const handleSelectOffer = (index) => {
+        $userInfo.project.selected_plan = index;
         selectOffer = index;
-        isOpenModal.set(true)
+        // isOpenModal.set(true)
     }
 </script>
 <section class="h-screen flex">
@@ -95,20 +102,28 @@ let store;
                 </div>
                 <div>
                     <div class="text-2xl sm:mt-4 lg:mt-10 mb-6 font-medium">Let’s review your offers</div>
-
                     <div class="flex sm:overflow-scroll xl:overflow-hidden gap-2">
-                        {#each cardd as items,index}
-                            <div key={index} class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
-                                <h2 class="text-center text-lg font-bold">Your best offer</h2>
+                        {#each userData?.plans as plan}
+                            <div key={plan.name}
+                                 class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
+                                <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
                                 <div class="max-w-52 p-3 bg-gray-100 rounded align-center">
                                     <h2 class="text-lg text-blue-500 text-center font-semibold text-primary">
-                                        $12471.25</h2>
-                                    <span class="text-center flex justify-center line-through  text-sm">$22675.00</span>
+                                        ${plan.settlement_amount}</h2>
+                                    {#if (parseInt(plan.settlement_amount) !== parseInt(userData?.project?.unadjusted_amount))}
+                                        <span class="text-center flex justify-center line-through  text-sm">{userData?.project?.unadjusted_amount}</span>
+                                    {/if}
                                 </div>
-                                <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">45% forgiven</h2>
-                                <h2 class="text-center text-sm font-medium mt-3 px-4">Make payment within 1 week</h2>
-                                <button class={`btn btn-primary w-52 mt-10 ${selectOffer===index?'':'btn-outline'}`}
-                                        on:click={() =>handleSelectOffer(index)}>Select
+                                <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">
+                                    {#if (parseInt(plan.forgiven_percentage) > 0)}
+                                        {plan.forgiven_percentage}% forgiven
+                                    {:else}
+                                        no debt forgiveness
+                                    {/if}
+                                </h2>
+                                <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
+                                <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
+                                        on:click={() =>handleSelectOffer(plan.name)}>Select
                                 </button>
                             </div>
                         {/each}
@@ -151,7 +166,7 @@ let store;
     </div>
     {#if $isOpenModal}
         <Modal>
-            <InlineCalendar  bind:store {theme}/>
+            <InlineCalendar bind:store {theme}/>
         </Modal>
     {/if}
 </section>

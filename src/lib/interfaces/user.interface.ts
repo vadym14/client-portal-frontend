@@ -82,6 +82,11 @@ export interface UserInfo {
 		account_open?:string,
 		charge_off_date?:string,
 		unadjusted_amount?:string,
+		plan_1?:string,
+		plan_2?:string,
+		plan_3?:string,
+		plan_4?:string,
+		plan_5?:string,
 	}
 }
 

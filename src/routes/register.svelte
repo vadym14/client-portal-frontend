@@ -3,6 +3,7 @@
     import {onMount} from "svelte";
     import {api} from "../lib/_api";
     import {userInfo} from "../lib/store/UserInfoStore";
+    import {handleServerMessages} from "$lib/utils/handleServerMessages";
 
     let regex = /^(?:[a-zA-Z]){1}[-](?:[a-zA-Z]){3}[-](?:\d){2}[-](?:\d){5}$/s;
     let accValidation = '';
@@ -21,26 +22,20 @@
     let errorClass = '';
     let errorStatus = false;
     let errorMessage = '';
-    onMount(() => {
-        if (Object.keys($userInfo).length !== 0) {
-            jsonData = {...$userInfo};
-        }
-    });
     const handleRegSave = async () => {
         accValidation = '';
         if (jsonData.register.name === '' || jsonData.register.date_of_birth === '' || jsonData.register.ssn === '') {
             errorClass = 'input-error';
-        }
-        else if (!regex.test(jsonData.register.name)) {
+        } else if (!regex.test(jsonData.register.name)) {
             errorClass = 'input-error';
-            accValidation = 'please match the format. e.g., C-XXX-00-00000';
-        }
-        else {
+            accValidation = 'Please match the format. e.g., C-XXX-00-00000';
+        } else {
             const response = await api('post', `onboarding/register`, jsonData.register);
             let rjson = await response.json()
+            handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                $userInfo = {...rjson.data,...jsonData};
+                $userInfo = {...rjson.data, ...jsonData};
                 await goto('/createpassword');
             } else {
                 errorMessage = rjson.data.message
