@@ -12,21 +12,32 @@ export async function post({request}: any) {
 
     const rjson = await request.json();
     const api = new ZecsnExtAPI();
-    if (rjson['user'] && rjson['contact'] && rjson['contact']['name']) {
+    if (rjson['user'] && rjson['contact']) {
         rjson['user']['name'] = ''
         const user = await api.insert(rjson['user'])
         if (user) {
             data['message'] = user['name']
             rjson['contact']['user'] = user['name']
-            await api.update(rjson['contact'])
-            if (rjson['customer'] && rjson['customer']['name']) {
+            let contact = null
+            if (rjson['contact']) {
+                if (rjson['contact']['name'])
+                    contact = await api.update(rjson['contact'])
+                else
+                    contact = await api.insert(rjson['contact'])
+            }
+            if (contact) {
+                rjson['customer']['customer_primary_contact'] = contact['name']
                 await api.update(rjson['customer'])
             }
+            await api.update(rjson['contact'])
             if (rjson['project'] && rjson['project']['name']) {
                 await api.update(rjson['project'])
             }
-            if (rjson['address'] && rjson['address']['name']) {
-                await api.update(rjson['address'])
+            if (rjson['address']) {
+                if (rjson['address']['name'])
+                    await api.update(rjson['address'])
+                else
+                    await api.insert(rjson['address'])
             }
             status = true
         } else {

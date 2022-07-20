@@ -37,20 +37,22 @@ class ZecsnExtAPI {
     };
 
     getLoggedInUser = async (cookies: string): Promise<any> => {
-        this.headers.cookie = cookies
+        let headers = this.headers
+        headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/frappe.auth.get_logged_user`, {
             method: 'GET',
             credentials: 'include',
-            headers: this.headers,
+            headers: headers,
         });
         return this.postProcess(res);
     };
 
     logout = async (cookies: string): Promise<any> => {
-        this.headers.cookie = cookies
+        let headers = this.headers
+        headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/logout`, {
             method: 'GET',
-            headers: this.headers,
+            headers: headers,
         });
         return this.postProcess(res);
     };
@@ -235,9 +237,11 @@ class ZecsnExtAPI {
         let url = this.BASE_URL
         url = this.paramsPreProcess(url, params)
         // @ts-ignore
+        let headers = this.headers
+        headers.cookie = ''
         const res = await fetch(url, {
             method: 'GET',
-            headers: this.headers,
+            headers: headers,
         });
         return this.postProcess(res);
     };

@@ -22,7 +22,7 @@
     };
 
     let offerData, selectOffer = ';'
-    let userData = $userInfo;
+    let userData = $userInfo, btnLoading = false, btnDisable = false;
     let previousData = {};
     onMount(async () => {
         offerData = {
@@ -40,10 +40,12 @@
         }
     })
     const handleSave = async () => {
+        btnLoading = btnDisable = true;
         const response = await api('post', `onboarding/finale`, $userInfo);
         let rjson = await response.json()
         handleServerMessages(rjson.data._server_messages)
         if (rjson.status) {
+            btnLoading = false, btnDisable = false;
             toast.push("Congrats, you've completed the process.", {
                 theme: {
                     '--toastBackground': '#48BB78',
@@ -53,10 +55,11 @@
         }
     }
 
-    const handleSelectOffer = (index) => {
-        $userInfo.project.selected_plan = index;
-        selectOffer = index;
-        // isOpenModal.set(true)
+    const handleSelectOffer = (plan) => {
+        $userInfo.project.selected_plan = plan.name;
+        // $userInfo.project.charge_off_date = plan.name;
+        selectOffer = plan.name;
+        // isOpenModal.set(plan.docusign_template)
     }
 </script>
 <section class="h-screen flex">
@@ -123,14 +126,15 @@
                                 </h2>
                                 <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
                                 <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
-                                        on:click={() =>handleSelectOffer(plan.name)}>Select
+                                        on:click={() =>handleSelectOffer(plan)}>Select
                                 </button>
                             </div>
                         {/each}
                     </div>
                     <div class="flex lg:flex-row flex-col-reverse lg:justify-end sm:justify-center gap-2 mt-10">
                         <div class="lg:block sm:hidden">
-                            <button class="btn lg:btn-wide sm:w-full btn-outline btn-primary">
+                            <button disabled = {btnDisable}
+                                    class={`btn lg:btn-wide sm:w-full btn-outline btn-primary ${btnLoading?'loading':''}`}>
                                 FAQ
                             </button>
                         </div>
@@ -150,12 +154,14 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn lg:btn-wide sm:w-full btn-outline btn-primary"
+                            <button disabled = {btnDisable}
+                                    class={`btn lg:btn-wide sm:w-full btn-outline btn-primary ${btnLoading?'loading':''}`}
                                     on:click={()=>goto('https://tarefinancial.com/contact')}>Contact Us
                             </button>
                         </div>
                         <div>
-                            <button class="btn lg:btn-wide sm:w-full btn-primary" on:click={()=>{handleSave()}}>
+                            <button disabled={btnDisable}
+                                    class={`btn lg:btn-wide sm:w-full btn-primary ${btnLoading?'loading':''}`} on:click={()=>{handleSave()}}>
                                 Save & Exit
                             </button>
                         </div>

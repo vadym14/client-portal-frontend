@@ -90,6 +90,66 @@ export interface UserInfo {
 	}
 }
 
+export interface DashBoardInfo {
+
+	customer: {
+		doctype?: string,
+		name?: string,
+		customer_name?: string,
+		customer_primary_address?: string,
+		customer_primary_contact?: string
+	},
+	contact: {
+		doctype: string,
+		name?: string,
+		first_name?: string,
+		last_name?: string,
+		email_id?: string ,
+		phone?: string
+	},
+	address: {
+		doctype?: string,
+		name?: string ,
+		address_line1?: string ,
+		city?: string ,
+		state?: string ,
+		phone?: string,
+		email_id?:string,
+		pincode?: string
+	},
+	user: {
+		doctype?: string,
+		name?: string ,
+		first_name?: string ,
+		last_name?: string ,
+		email?: string ,
+		new_password?: string
+	},
+	project: {
+		doctype?:string,
+		name?:string,
+		original_creditor?:string,
+		creditor_account_number?:string,
+		account_open?:string,
+		charge_off_date?:string,
+		unadjusted_amount?:string,
+		plan_1?:string,
+		plan_2?:string,
+		plan_3?:string,
+		plan_4?:string,
+		plan_5?:string,
+	},
+	plan:{
+		doctype?:string,
+		name?:string,
+		settlement_amount?:string,
+		forgiven_percentage?:string,
+		total_terms?:string,
+		docusign_template?:string,
+		credit_duration?:string,
+	}
+}
+
 export interface UserResponse {
 	user?: User;
 }

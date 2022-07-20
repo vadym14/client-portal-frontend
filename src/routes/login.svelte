@@ -40,7 +40,7 @@
 
 <section class="">
     <div class="sm:hidden lg:block">
-        <div class="flex h-screen  text-gray-600 bg-base-300  body-font ">
+        <div class="flex h-screen  text-gray-600 body-font ">
             <div class="m-auto flex flex-row  w-[53rem] card ">
                 <div class="p-4 w-full bg-white container p-6 ">
                     <h1 class="title-font  text-blackhead text-3xl font-bold">Login</h1>

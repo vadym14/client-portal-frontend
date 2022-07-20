@@ -22,11 +22,19 @@
     let errorClass = '';
     let errorStatus = false;
     let errorMessage = '';
+    let btnDisable = false,btnLoading = false;
+
     const handleRegSave = async () => {
         accValidation = '';
+        btnDisable = true;
+        btnLoading = true;
         if (jsonData.register.name === '' || jsonData.register.date_of_birth === '' || jsonData.register.ssn === '') {
             errorClass = 'input-error';
+            btnDisable = false;
+            btnLoading = false;
         } else if (!regex.test(jsonData.register.name)) {
+            btnDisable = false;
+            btnLoading = false;
             errorClass = 'input-error';
             accValidation = 'Please match the format. e.g., C-XXX-00-00000';
         } else {
@@ -38,7 +46,10 @@
                 $userInfo = {...rjson.data, ...jsonData};
                 await goto('/createpassword');
             } else {
+                btnDisable = false;
+                btnLoading = false;
                 errorMessage = rjson.data.message
+
             }
         }
     }
@@ -96,7 +107,7 @@
                                    class={`input input-bordered w-full max-w-s ${jsonData.register.ssn===''?errorClass:''}`}/>
                         </div>
                     </div>
-                    <button class="btn btn-primary w-full mt-10" on:click={()=>handleRegSave()}>Continue</button>
+                    <button disabled={btnDisable} class={`btn btn-primary w-full mt-10 ${btnLoading?'loading':''}`} on:click={()=>handleRegSave()}>Continue</button>
                 </div>
             </div>
         </div>

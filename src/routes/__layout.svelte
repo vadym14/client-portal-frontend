@@ -18,6 +18,6 @@
 
 </script>
 <SvelteToast {options}/>
-<main class="bg-base-200">
+<main class="bg-base-300">
     <slot/>
 </main>

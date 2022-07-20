@@ -4,13 +4,13 @@
 
     let password = '';
     let regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{4,}$/s;
-    let accValidation = '';
-    let errorClass='';
-
+    let accValidation = '', errorClass='', btnDisable = false , btnLoading = false;
     const handleCreatePassword = () => {
         errorClass = '';
+        btnDisable = btnLoading = true;
         if (!regex.test(password)) {
             errorClass = 'input-error';
+            btnDisable = btnLoading = false;
             accValidation = 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character';
         }  else {
             accValidation = '';
@@ -40,7 +40,8 @@
                         <p class="text-red-700 mt-1 text-xs">{accValidation}</p>
                     </div>
                 </div>
-                <button class="btn btn-primary w-full self-end mt-24" on:click={()=>handleCreatePassword()}>
+                <button disabled={btnDisable}
+                        class={`btn btn-primary w-full self-end mt-24 ${btnLoading?'loading':''}`} on:click={()=>handleCreatePassword()}>
                     Continue
                 </button>
             </div>
