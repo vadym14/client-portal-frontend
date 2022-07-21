@@ -8,6 +8,8 @@
     import {InlineCalendar} from "svelte-calendar";
     import {handleServerMessages} from "$lib/utils/handleServerMessages";
     import {toast} from "@zerodevx/svelte-toast";
+    import {DasboardInfo} from "../lib/store/dashboardinfoStore.ts";
+    import login from "./login.svelte";
 
     let store;
     const theme = {
@@ -21,23 +23,25 @@
         return true;
     };
 
-    let offerData, selectOffer = ';'
+    let  selectOffer = ';'
     let userData = $userInfo, btnLoading = false, btnDisable = false;
     let previousData = {};
     onMount(async () => {
-        offerData = {
-            plan_1: $userInfo.project?.plan_1,
-            plan_2: $userInfo.project?.plan_2,
-            plan_3: $userInfo.project?.plan_3,
-            plan_4: $userInfo.project?.plan_4,
-            plan_5: $userInfo.project?.plan_5,
+        if($DasboardInfo.name!==''){
+            console.log('DasboardInfo.customer.name')
+            // userData.register.name=$DasboardInfo?.name;
+            // userData.register.ssn=$DasboardInfo?.ssn;
+            // userData.register.date_of_birth=$DasboardInfo?.date_of_birth;
+            // $userInfo=userData;
+        }else{
+            previousData = {...$userInfo};
+            if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
+                goto('/register');
+            } else if (previousData?.address?.email_id === undefined || previousData?.address?.phone === undefined || previousData?.customer?.customer_name === undefined) {
+                goto('/personinfo');
+            }
         }
-        previousData = {...$userInfo};
-        if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
-            goto('/register');
-        } else if (previousData?.address?.email_id === undefined || previousData?.address?.phone === undefined || previousData?.customer?.customer_name === undefined) {
-            goto('/personinfo');
-        }
+
     })
     const handleSave = async () => {
         btnLoading = btnDisable = true;
@@ -106,7 +110,8 @@
                 <div>
                     <div class="text-2xl sm:mt-4 lg:mt-10 mb-6 font-medium">Let’s review your offers</div>
                     <div class="flex sm:overflow-scroll xl:overflow-hidden gap-2">
-                        {#each userData?.plans as plan}
+                        {#if (userData.plans)}
+                            {#each userData?.plans as plan}
                             <div key={plan.name}
                                  class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
                                 <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
@@ -130,6 +135,7 @@
                                 </button>
                             </div>
                         {/each}
+                        {/if}
                     </div>
                     <div class="flex lg:flex-row flex-col-reverse lg:justify-end sm:justify-center gap-2 mt-10">
                         <div class="lg:block sm:hidden">

@@ -36,6 +36,14 @@ export interface User {
 }
 
 export interface UserInfo {
+    plans:[{
+		name?:string,
+		settlement_amount?:string,
+		forgiven_percentage?:string,
+		total_terms?:string,
+		docusign_template?:string,
+		credit_duration?:string,
+	}],
 	register:{
 		name?: string;
 		date_of_birth?: string;
@@ -54,7 +62,15 @@ export interface UserInfo {
 		first_name?: string,
 		last_name?: string,
 		email_id?: string ,
-		phone?: string
+		phone?: string,
+		is_primary_contact?: string,
+		is_billing_contact?: string,
+		links?: [{
+			link_doctype?: string,
+			link_name?: string,
+			link_title?: string,
+			doctype?: string
+		}]
 	},
 	address: {
 		doctype?: string,
@@ -64,7 +80,15 @@ export interface UserInfo {
 		state?: string ,
 		phone?: string,
 		email_id?:string,
-		pincode?: string
+		pincode?: string,
+		is_primary_address?: string,
+		is_shipping_address?: string,
+		links?: [{
+			link_doctype?: string,
+			link_name?: string,
+			link_title?: string,
+			doctype?: string
+		}]
 	},
 	user: {
 		doctype?: string,
@@ -95,6 +119,8 @@ export interface DashBoardInfo {
 	customer: {
 		doctype?: string,
 		name?: string,
+		date_of_birth?: string,
+		ssn?: string,
 		customer_name?: string,
 		customer_primary_address?: string,
 		customer_primary_contact?: string
@@ -147,6 +173,10 @@ export interface DashBoardInfo {
 		total_terms?:string,
 		docusign_template?:string,
 		credit_duration?:string,
+	},
+	envelope:{
+		doctype?: string,
+		envelope_status?: string,
 	}
 }
 

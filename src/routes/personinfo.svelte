@@ -3,6 +3,8 @@
     import {onMount} from "svelte";
     import {userInfo} from "../lib/store/UserInfoStore";
     import {toast} from "@zerodevx/svelte-toast";
+    import {api} from "../lib/_api";
+    import {handleServerMessages} from "../lib/utils/handleServerMessages";
 
     const states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'Washington, D.C.', 'West Virginia', 'Wisconsin', 'Wyoming'];
     let jsonData = {
@@ -85,12 +87,18 @@
             if (isAddressChanged) {
                 jsonData.address.name = '';
             }
-            jsonData.user.name = jsonData.customer.name;
-            jsonData.user.email = jsonData.contact.email_id;
             jsonData.user.first_name = jsonData.contact.first_name;
             jsonData.user.last_name = jsonData.contact.last_name;
+            jsonData.user.email = jsonData.address.email_id = jsonData.contact.email_id;
+            jsonData.address.phone = jsonData.contact.phone;
             $userInfo = jsonData;
-            goto('/yourbestoffer')
+            const response = await api('post', `onboarding/personInfo`, $userInfo);
+            let rjson = await response.json()
+            handleServerMessages(rjson.data._server_messages)
+            if (rjson.status) {
+                goto('/yourbestoffer')
+            }
+            btnDisable = btnLoading = false;
         }
     }
     const handleEdit = () => {
