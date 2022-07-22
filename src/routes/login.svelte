@@ -69,9 +69,9 @@
                     <div class=" mt-5">
                         <div class="form-control w-96 max-w-sm">
                             <label class="label">
-                                <span class="title-font">Username</span>
+                                <span class="title-font">Email</span>
                             </label>
-                            <input type="text" bind:value={email} placeholder="Please enter your last name"
+                            <input type="text" bind:value={email} placeholder="Please enter your email"
                                    class={`input input-bordered w-full max-w-s ${email===''? 'input'+errorClass:''}`}/>
                         </div>
                         <div class="form-control w-full max-w-s">
