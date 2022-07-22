@@ -3,6 +3,9 @@
     import {goto} from "$app/navigation";
     import {toast} from "@zerodevx/svelte-toast";
     import {handleServerMessages} from "../lib/utils/handleServerMessages";
+    import login from "./login.svelte";
+    import {DasboardInfo} from "../lib/store/dashboardinfoStore";
+    import {userInfo} from "../lib/store/UserInfoStore";
 
     let email = '', name = '', password = '', errorClass = '',
         btnDisable = false,
@@ -20,13 +23,31 @@
                 usr: email,
                 pwd: password
             }
-            const response = await api('POST', `onboarding/login`, jsonData);
+            const response = await api('POST', `auth/login`, jsonData);
             let rjson = await response.json()
             handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                toast.push(rjson.data.message)
-                await goto('/dashboard');
+                if(rjson.data.envelope.envelope_status!=='Signed' || !rjson['data']['project']['selected_plan']){
+                    $DasboardInfo=rjson.data.customer
+                    $userInfo.customer=rjson.data.customer;
+                    $userInfo.contact=rjson.data.contact;
+                    $userInfo.address=rjson.data.address;
+                    $userInfo.user=rjson.data.user;
+                    $userInfo.project=rjson.data.project;
+                    $userInfo.plans=rjson.data.plans;
+                    let jsonData = {
+                            name: rjson.data?.customer.name,
+                            date_of_birth: rjson.data?.customer.ssn,
+                            ssn: rjson.data?.customer.date_of_birth,
+                        }
+                    $userInfo.register={...jsonData}
+                    await goto('/yourbestoffer')
+                }else{
+                    $DasboardInfo=rjson.data;
+                    toast.push(rjson.data.message)
+                    await goto('/dashboard');
+                }
                 btnDisable = false;
                 btnLoading = false;
             } else {

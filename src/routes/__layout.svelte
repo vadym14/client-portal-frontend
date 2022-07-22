@@ -4,15 +4,19 @@
     import {SvelteToast} from '@zerodevx/svelte-toast'
     import {goto} from "$app/navigation";
     import * as cookie from 'cookie';
+    import {page} from "$app/stores";
 
     const options = {theme: {'--toastBackground': '#570df8', '--toastBarBackground': '#4506cb'}}
 
     onMount(async () => {
+        console.log()
         const cookies = cookie.parse(document.cookie)
-        if (cookies && cookies['sid']) {
-            await goto('/dashboard');
-        } else {
-            await goto('/login');
+        if ($page.routeId !== 'logout') {
+            if (cookies && cookies['sid']) {
+                await goto('/dashboard');
+            } else {
+                await goto('/login');
+            }
         }
     })
 

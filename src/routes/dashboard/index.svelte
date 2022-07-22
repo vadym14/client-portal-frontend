@@ -2,6 +2,7 @@
     import {api} from "$lib/_api";
     import LoaderPage from "../../lib/LoaderPage.svelte";
     import {DasboardInfo} from "../../lib/store/dashboardinfoStore.ts";
+    import {goto} from "$app/navigation";
 
     let jsonData = {
         'customer': {
@@ -57,14 +58,17 @@
         }
     };
     const items = [1, 2, 3, 4, 5, 6];
-    const getData = async () => {
-        const response = await api('get', `portal/dashboard-data`);
-        const data=await response.json()
-        console.log(data.data)
-        $DasboardInfo={...data.data}
-        jsonData={...data.data};
-    }
-let promise = getData();
+    // const getData = async () => {
+    //     const response = await api('get', `portal/dashboard-data`);
+    //     const data=await response.json()
+    //     $DasboardInfo={...data.data}
+    //     jsonData={...data.data};
+    //     if(data.data.envelope.envelope_status!=='Signed'){
+    //         await goto('/yourbestoffer')
+    //     }
+    // }
+let promise = $DasboardInfo;
+    jsonData={...$DasboardInfo};
 </script>
 <svelte:head>
     <title>Home</title>

@@ -1,10 +1,11 @@
-import {writable} from 'svelte/store';
+import { writable} from 'svelte/store';
 import type {UserInfo} from '$lib/interfaces/user.interface';
 import {browser} from "$app/env";
 
 const storedData = JSON.parse(browser && localStorage.getItem('userinfo') || `{}`);
 //register: {},customer:{},contact:{},address:{},user:{}
-export const userInfo = writable<UserInfo>(browser && storedData || {
+// @ts-ignore
+export const userInfo: writable<UserInfo> = writable<UserInfo>(browser && storedData || {
     'customer': {
         'doctype': '',
         'name': '',
@@ -68,4 +69,4 @@ export const userInfo = writable<UserInfo>(browser && storedData || {
     }
 });
 
-userInfo.subscribe((val) => browser && (localStorage.userinfo = JSON.stringify(val))); // save to local storage for persistence;
+userInfo.subscribe((val:any) => browser && (localStorage.userinfo = JSON.stringify(val))); // save to local storage for persistence;

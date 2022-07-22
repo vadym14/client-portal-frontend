@@ -23,17 +23,17 @@
         return true;
     };
 
-    let  selectOffer = ';'
+    let selectOffer = ';'
     let userData = $userInfo, btnLoading = false, btnDisable = false;
     let previousData = {};
     onMount(async () => {
-        if($DasboardInfo.name!==''){
+        if ($DasboardInfo.name !== '') {
             console.log('DasboardInfo.customer.name')
             // userData.register.name=$DasboardInfo?.name;
             // userData.register.ssn=$DasboardInfo?.ssn;
             // userData.register.date_of_birth=$DasboardInfo?.date_of_birth;
             // $userInfo=userData;
-        }else{
+        } else {
             previousData = {...$userInfo};
             if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
                 goto('/register');
@@ -44,16 +44,26 @@
 
     })
     const handleSave = async () => {
-        btnLoading = btnDisable = true;
-        const response = await api('post', `onboarding/finale`, $userInfo);
-        let rjson = await response.json()
-        handleServerMessages(rjson.data._server_messages)
-        if (rjson.status) {
-            btnLoading = false, btnDisable = false;
-            toast.push("Congrats, you've completed the process.", {
+        btnLoading = btnDisable = true
+        if (selectOffer !== '') {
+            const response = await api('post', `onboarding/plan`, $userInfo);
+            let rjson = await response.json()
+            handleServerMessages(rjson.data._server_messages)
+            if (rjson.status) {
+                toast.push("Congrats, you've completed the process.", {
+                    theme: {
+                        '--toastBackground': '#48BB78',
+                        '--toastBarBackground': '#2F855A'
+                    }
+                })
+            }
+            btnLoading = btnDisable = false
+        } else {
+            btnLoading = btnDisable = false;
+            toast.push("Kindly select offer first", {
                 theme: {
-                    '--toastBackground': '#48BB78',
-                    '--toastBarBackground': '#2F855A'
+                    '--toastBackground': '#F56565',
+                    '--toastBarBackground': '#C53030'
                 }
             })
         }
@@ -112,34 +122,40 @@
                     <div class="flex sm:overflow-scroll xl:overflow-hidden gap-2">
                         {#if (userData.plans)}
                             {#each userData?.plans as plan}
-                            <div key={plan.name}
-                                 class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
-                                <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
-                                <div class="max-w-52 p-3 bg-gray-100 rounded align-center">
-                                    <h2 class="text-lg text-blue-500 text-center font-semibold text-primary">
-                                        ${plan.settlement_amount}</h2>
-                                    {#if (parseInt(plan.settlement_amount) !== parseInt(userData?.project?.unadjusted_amount))}
-                                        <span class="text-center flex justify-center line-through  text-sm">{userData?.project?.unadjusted_amount}</span>
-                                    {/if}
+                                <div key={plan.name}
+                                     class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
+                                    <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
+                                    <div class="max-w-52 p-3 bg-gray-100 rounded align-center">
+                                        <h2 class="text-lg text-blue-500 text-center font-semibold text-primary">
+                                            ${plan.settlement_amount}</h2>
+                                        {#if (parseInt(plan.settlement_amount) !== parseInt(userData?.project?.unadjusted_amount))}
+                                            <span class="text-center flex justify-center line-through  text-sm">{userData?.project?.unadjusted_amount}</span>
+                                        {/if}
+                                    </div>
+                                    <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">
+                                        {#if (parseInt(plan.forgiven_percentage) > 0)}
+                                            {plan.forgiven_percentage}% forgiven
+                                        {:else}
+                                            no debt forgiveness
+                                        {/if}
+                                    </h2>
+                                    <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
+                                    <h2 class="text-center text-sm font-medium mt-3 px-4">
+                                        {#if (parseInt(plan.total_terms) > 1)}
+                                            {plan.total_terms} equal payments of
+                                            ${(parseInt(plan.settlement_amount) / parseInt(plan.total_terms)).toFixed(2)}
+                                        {/if}
+                                    </h2>
+                                    <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
+                                            on:click={() =>handleSelectOffer(plan)}>Select
+                                    </button>
                                 </div>
-                                <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">
-                                    {#if (parseInt(plan.forgiven_percentage) > 0)}
-                                        {plan.forgiven_percentage}% forgiven
-                                    {:else}
-                                        no debt forgiveness
-                                    {/if}
-                                </h2>
-                                <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
-                                <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
-                                        on:click={() =>handleSelectOffer(plan)}>Select
-                                </button>
-                            </div>
-                        {/each}
+                            {/each}
                         {/if}
                     </div>
                     <div class="flex lg:flex-row flex-col-reverse lg:justify-end sm:justify-center gap-2 mt-10">
                         <div class="lg:block sm:hidden">
-                            <button disabled = {btnDisable}
+                            <button disabled={btnDisable}
                                     class={`btn lg:btn-wide sm:w-full btn-outline btn-primary ${btnLoading?'loading':''}`}>
                                 FAQ
                             </button>
@@ -160,14 +176,15 @@
                             </div>
                         </div>
                         <div>
-                            <button disabled = {btnDisable}
+                            <button disabled={btnDisable}
                                     class={`btn lg:btn-wide sm:w-full btn-outline btn-primary ${btnLoading?'loading':''}`}
                                     on:click={()=>goto('https://tarefinancial.com/contact')}>Contact Us
                             </button>
                         </div>
                         <div>
                             <button disabled={btnDisable}
-                                    class={`btn lg:btn-wide sm:w-full btn-primary ${btnLoading?'loading':''}`} on:click={()=>{handleSave()}}>
+                                    class={`btn lg:btn-wide sm:w-full btn-primary ${btnLoading?'loading':''}`}
+                                    on:click={()=>{handleSave()}}>
                                 Save & Exit
                             </button>
                         </div>

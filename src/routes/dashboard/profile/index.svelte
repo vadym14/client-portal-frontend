@@ -2,9 +2,11 @@
     import {onMount} from "svelte";
     import {DasboardInfo} from "../../../lib/store/dashboardinfoStore.ts";
     import {goto} from "$app/navigation";
+    import {toast} from "@zerodevx/svelte-toast";
+    import {api} from "$lib/_api";
+    import {handleServerMessages} from "$lib/utils/handleServerMessages";
 
     const states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'Washington, D.C.', 'West Virginia', 'Wisconsin', 'Wyoming'];
-    let disabledInfo = true
     let jsonData = {
         customer: {
             "doctype": '',
@@ -54,6 +56,8 @@
             'plan_5': '',
         }
     };
+    let disabledInfo = true, btnLoading = false, btnDisable = false, isAddressChanged = false;
+    let errorClass = '';
 
     onMount(() => {
         if ($DasboardInfo === {}) {
@@ -74,10 +78,40 @@
     const handleAutoPayEdit = () => {
     };
 
-    function handleProfileSave() {
-        disabledInfo = true;
+    const handleProfileSave = async () => {
+        btnDisable = btnLoading = true;
+        console.log(jsonData)
+        if (jsonData.customer.customer_name === '' || jsonData.contact.email_id === '' || jsonData.contact.phone === '' ||
+            jsonData.address.address_line1 === '' || jsonData.address.city === '' || jsonData.address.state === '' || jsonData.address.pincode === '') {
+            errorClass = '-error';
+            btnDisable = btnLoading = false;
+            toast.push('Please edit and fill all information', {
+                'theme': {
+                    '--toastBackground': '#F56565',
+                    '--toastBarBackground': '#C53030'
+                }
+            })
+        } else {
+            if (isAddressChanged) {
+                jsonData.address.name = '';
+            }
+            jsonData.user = jsonData.contact.email_id;
+            $DasboardInfo = jsonData
+            const response = await api('post', `portal/contact`, jsonData);
+            let rjson = await response.json()
+            handleServerMessages(rjson.data._server_messages)
+            if (rjson.status) {
+                toast.push('Contact information successfully updated.')
+            }
+            disabledInfo = true;
+            btnDisable = btnLoading = false;
+        }
 
     }
+
+    const addressChanged = () => {
+        isAddressChanged = true;
+    };
 </script>
 
 <section class="lg:m-4 bg-base-200">
@@ -118,7 +152,7 @@
                 <label class="label ">
                     <span class="label-text">Email</span>
                 </label>
-                <input type="text" placeholder="Jhon@example.com" bind:value={jsonData.address.email_id}
+                <input type="text" placeholder="Jhon@example.com" bind:value={jsonData.contact.email_id}
                        disabled={disabledInfo}
                        class="input input-bordered"/>
             </div>
@@ -126,7 +160,7 @@
                 <label class="label ">
                     <span class="label-text">Phone Number</span>
                 </label>
-                <input type="text" placeholder="646-100-1000" bind:value={jsonData.address.phone}
+                <input type="text" placeholder="646-100-1000" bind:value={jsonData.contact.phone}
                        disabled={disabledInfo}
                        class="input input-bordered"/>
             </div>
@@ -135,7 +169,7 @@
                     <span class="label-text">Street</span>
                 </label>
                 <input type="text" placeholder="123 fake street" bind:value={jsonData.address.address_line1}
-                       disabled={disabledInfo}
+                       disabled={disabledInfo} on:change={()=>addressChanged()}
                        class="input input-bordered"/>
             </div>
             <div class="flex flex-row gap-2">
@@ -145,7 +179,7 @@
                             <span class="text-base font-medium text-gray-900 mb-1">City</span>
                         </label>
                         <input type="text" placeholder="New York" bind:value={jsonData.address.city}
-                               disabled={disabledInfo}
+                               disabled={disabledInfo} on:change={()=>addressChanged()}
                                class="input input-bordered w-full max-w-s"/>
                         <label class="label">
                         </label>
@@ -157,7 +191,7 @@
                             <span class="text-base font-medium text-gray-900 mb-1">State</span>
                         </label>
                         <select disabled={disabledInfo} class="select select-bordered"
-                                bind:value={jsonData.address.state}>
+                                bind:value={jsonData.address.state} on:change={()=>addressChanged()}>
                             <option disabled selected>Select</option>
                             {#each states as state}
                                 <option>{state}</option>
@@ -172,8 +206,7 @@
                             <span class="text-base font-medium text-gray-900 mb-1">Code</span>
                         </label>
                         <input type="text" placeholder="10001" bind:value={jsonData.address.pincode}
-                               disabled={disabledInfo}
-
+                               disabled={disabledInfo} on:change={()=>addressChanged()}
                                class="input input-bordered w-full max-w-s"/>
                         <label class="label">
                         </label>
@@ -187,7 +220,7 @@
                             EDIT
                         </button>
                     {:else}
-                        <button class="btn btn-outline btn-primary btn-wide" on:click={()=>handleProfileSave()}>
+                        <button class={`btn btn-outline btn-primary btn-wide ${btnLoading?'loading':''}`} on:click={()=>handleProfileSave()}>
                             Save
                         </button>
                     {/if}

@@ -37,7 +37,7 @@ class ZecsnExtAPI {
     };
 
     getLoggedInUser = async (cookies: string): Promise<any> => {
-        let headers = this.headers
+        let headers = Object.assign({},this.headers)
         headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/frappe.auth.get_logged_user`, {
             method: 'GET',
@@ -48,7 +48,7 @@ class ZecsnExtAPI {
     };
 
     logout = async (cookies: string): Promise<any> => {
-        let headers = this.headers
+        let headers = Object.assign({},this.headers)
         headers.cookie = cookies
         const res = await fetch(`${this.BASE_URL}/api/method/logout`, {
             method: 'GET',
@@ -144,11 +144,11 @@ class ZecsnExtAPI {
         });
     }
 
-    getValue(doctype, fieldname = 'name', filters: Object) {
+    getValue(doctype, fieldname, filters: Object) {
         return this.getRequest({
             cmd: 'frappe.client.get_value',
             doctype: doctype,
-            fieldname: fieldname,
+            fieldname: fieldname || 'name',
             filters: filters,
         });
     }
@@ -237,11 +237,9 @@ class ZecsnExtAPI {
         let url = this.BASE_URL
         url = this.paramsPreProcess(url, params)
         // @ts-ignore
-        let headers = this.headers
-        headers.cookie = ''
         const res = await fetch(url, {
             method: 'GET',
-            headers: headers,
+            headers: this.headers,
         });
         return this.postProcess(res);
     };

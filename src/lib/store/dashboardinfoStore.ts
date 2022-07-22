@@ -8,6 +8,8 @@ export const DasboardInfo = writable<DashBoardInfo>(browser && storedData || {
     customer: {
         "doctype": '',
         "name": '',
+        "date_of_birth": '',
+        "ssn": '',
         "customer_name": '',
         "customer_primary_address": '',
         "customer_primary_contact": ''
@@ -60,6 +62,10 @@ export const DasboardInfo = writable<DashBoardInfo>(browser && storedData || {
         'total_terms': '',
         'docusign_template': '',
         'credit_duration': '',
+    },
+    envelope:{
+        'doctype': '',
+        'envelope_status': '',
     }
 });
 

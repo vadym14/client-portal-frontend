@@ -21,14 +21,6 @@
         user.loggedIn = !user.loggedIn;
     }
 
-    const logOutUser = async () => {
-        const response = await api('POST', `onboarding/logout`);
-        let rjson = await response.json()
-        if (rjson.status) {
-            await goto('/login')
-        }
-    }
-
     onMount(async () => {
         const cookies = cookie.parse(document.cookie)
         if (!(cookies && cookies['sid'])) {
@@ -68,7 +60,7 @@
                            href="https://tarefinancial.com/contact">
                         <Phone/>
                         Contact Us</a></li>
-                    <li><a on:click={()=>logOutUser()}>
+                    <li><a on:click={()=>goto('/logout')}>
                         <Logout/>
                         Log Out</a></li>
                 </ul>
