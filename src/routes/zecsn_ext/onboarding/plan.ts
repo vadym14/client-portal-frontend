@@ -12,10 +12,15 @@ export async function post({request}: any) {
     const rjson = await request.json();
     const api = new ZecsnExtAPI();
     if (rjson['project'] && rjson['project']['name'] && rjson['project']['selected_plan']) {
-        console.log(rjson['project'])
         const project = await api.update(rjson['project'])
-        if (project)
+        if (project) {
+            const plan = await api.getValue('Payment Terms Template', ['name', 'docusign_template'],
+                {'name': rjson['project']['selected_plan']})
+            if(plan){
+                data['ptt']=plan
+            }
             status = true
+        }
     } else {
         Array.prototype.push.apply(data['_server_messages'], [{
             'message': 'Incomplete information',

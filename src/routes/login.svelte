@@ -3,21 +3,34 @@
     import {goto} from "$app/navigation";
     import {toast} from "@zerodevx/svelte-toast";
     import {handleServerMessages} from "../lib/utils/handleServerMessages";
-    import login from "./login.svelte";
     import {DasboardInfo} from "../lib/store/dashboardinfoStore";
     import {userInfo} from "../lib/store/UserInfoStore";
 
-    let email = '', name = '', password = '', errorClass = '',
+    // email validation regex
+    const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    let regex = /^(?:[a-zA-Z]){1}[-](?:[a-zA-Z]){3}[-](?:\d){2}[-](?:\d){5}$/s;
+    let email = '', name = '', password = '', errorClass = '', emailValidation='',accValidation='',
         btnDisable = false,
         btnLoading = false, errorStatus = false, errorMessage = '';
     const handleLogin = async () => {
-        btnDisable = true;
-        btnLoading = true;
+        btnDisable = btnLoading = true;
+        emailValidation = accValidation =  errorClass = '';
+
         if (email === '' || name === '' || password === '') {
             errorClass = '-error';
-            btnDisable = false;
-            btnLoading = false;
-        } else {
+            btnDisable = btnLoading = false;
+        }
+         if(!emailRegex.test(email)){
+            errorClass = '-error';
+            btnDisable = btnLoading = false;
+            emailValidation = 'You have entered an invalid email address!';
+        }
+         if(!regex.test(name)){
+            errorClass = '-error';
+            btnDisable = btnLoading = false;
+            accValidation = 'please match the format. e.g., C-XXX-00-00000';
+        }
+        else {
             const jsonData = {
                 name,
                 usr: email,
@@ -28,21 +41,11 @@
             handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                if(rjson.data.envelope.envelope_status!=='Signed' || !rjson['data']['project']['selected_plan']){
-                    $DasboardInfo=rjson.data.customer
+                if(rjson.data?.envelope?.envelope_status!=='Signed' || !rjson['data']['project']['selected_plan']){
                     $userInfo.customer=rjson.data.customer;
-                    $userInfo.contact=rjson.data.contact;
-                    $userInfo.address=rjson.data.address;
-                    $userInfo.user=rjson.data.user;
                     $userInfo.project=rjson.data.project;
                     $userInfo.plans=rjson.data.plans;
-                    let jsonData = {
-                            name: rjson.data?.customer.name,
-                            date_of_birth: rjson.data?.customer.ssn,
-                            ssn: rjson.data?.customer.date_of_birth,
-                        }
-                    $userInfo.register={...jsonData}
-                    await goto('/yourbestoffer')
+                    await goto('/loginoffer')
                 }else{
                     $DasboardInfo=rjson.data;
                     toast.push(rjson.data.message)
@@ -57,6 +60,20 @@
             }
         }
     }
+   const regCheck = (value,name) => {
+        emailValidation = '';
+        accValidation = '';
+       errorClass = '';
+       if (!emailRegex.test(value) && name === 'email') {
+            emailValidation = 'You have entered an invalid email address!';
+           errorClass = '-error';
+        }
+       if(!regex.test(value) && name === 'name'){
+           accValidation = 'please match the format. e.g., C-XXX-00-00000';
+           errorClass = '-error';
+       }
+    }
+
 </script>
 
 <section class="">
@@ -72,14 +89,18 @@
                                 <span class="title-font">Email</span>
                             </label>
                             <input type="text" bind:value={email} placeholder="Please enter your email"
-                                   class={`input input-bordered w-full max-w-s ${email===''? 'input'+errorClass:''}`}/>
+                                   on:input={(e)=> regCheck(e.target.value,'email')}
+                                   class={`input input-bordered w-full max-w-s ${email==='' || emailValidation!=='' ? 'input'+errorClass:''}`}/>
+                            <p class="text-red-700 mt-1 text-xs">{emailValidation}</p>
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">
                                 <span class="title-font font-medium text-gray-900">Account Number</span>
                             </label>
                             <input type="text" bind:value={name} placeholder="C-XXX-00-00000"
-                                   class={`input input-bordered w-full max-w-s ${name===''?'input'+errorClass:''}`}/>
+                                   on:input={(e)=> regCheck(e.target.value,'name')}
+                                   class={`input input-bordered w-full max-w-s ${name==='' || accValidation !=='' ?'input'+errorClass:''}`}/>
+                            <p class="text-red-700 mt-1 text-xs">{accValidation}</p>
                         </div>
                         <div class="form-control w-full max-w-s">
                             <label class="label">

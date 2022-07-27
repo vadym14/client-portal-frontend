@@ -50,6 +50,14 @@
             'charge_off_date': '',
             'unadjusted_amount': '',
         },
+        "plans": [{
+            'name': '',
+            'settlement_amount': '',
+            'forgiven_percentage': '',
+            'total_terms': '',
+            'docusign_template': '',
+            'credit_duration': '',
+        }],
         "register": {
             'name': '',
             'date_of_birth': '',
@@ -57,9 +65,10 @@
         }
     };
     let isAddressChanged = false
-
+    const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const phoneRegex = /^(\d){3}[-](\d){3}[-](\d){4}$/;
     let disabledInfo = true, btnLoading = false, btnDisable = false;
-    let errorClass = '';
+    let errorClass='' , emailValidation = '', phoneValidation =''
     let previousData = {register: {name: undefined, ssn: undefined}}
     onMount(() => {
         previousData = {...$userInfo};
@@ -73,6 +82,8 @@
     })
     const handleSave = async () => {
         btnDisable = btnLoading = true;
+        emailValidation = phoneValidation = errorClass = '';
+
         if (jsonData.customer.customer_name === '' || jsonData.contact.email_id === '' || jsonData.contact.phone === '' ||
             jsonData.address.address_line1 === '' || jsonData.address.city === '' || jsonData.address.state === '' || jsonData.address.pincode === '') {
             errorClass = '-error';
@@ -83,7 +94,18 @@
                     '--toastBarBackground': '#C53030'
                 }
             })
-        } else {
+        }
+            if (!disabledInfo && !emailRegex.test(jsonData.contact.email_id)) {
+                errorClass = '-error';
+            btnDisable = btnLoading = false;
+                emailValidation = 'You have entered an invalid email address!';
+            }
+            if (!disabledInfo && !phoneRegex.test(jsonData.contact.phone) ) {
+                errorClass = '-error';
+            btnDisable = btnLoading = false;
+                phoneValidation = 'please match the format. e.g., 100-100-1000';
+            }
+         else {
             if (isAddressChanged) {
                 jsonData.address.name = '';
             }
@@ -107,6 +129,17 @@
     const addressChanged = () => {
         isAddressChanged = true;
     };
+    const regCheck = (value,name)=> {
+        emailValidation = '';
+        phoneValidation= '';
+        if (!emailRegex.test(value) && name === 'email') {
+            emailValidation = 'You have entered an invalid email address!';
+        }
+        if (!phoneRegex.test(value) && name === 'phone') {
+            phoneValidation = 'please match the format. e.g., 100-100-1000';
+        }
+    }
+
 </script>
 <div class="h-screen flex sm:bg-white lg:bg-base-200">
     <div class="m-auto">
@@ -152,16 +185,18 @@
                         <span class="text-base font-medium text-gray-900">Email</span>
                     </label>
                     <input type="text" placeholder="john@gmail.com" bind:value={jsonData.contact.email_id}
-                           disabled={disabledInfo}
-                           class={`input input-bordered w-full max-w-s ${jsonData.contact.email_id===''?('input'+errorClass):''}`}/>
+                           disabled={disabledInfo} on:input={(e)=> regCheck(e.target.value,'email')}
+                           class={`input input-bordered w-full max-w-s ${jsonData.contact.email_id==='' || emailValidation!=='' ?('input'+errorClass):''}`}/>
+                    <p class="text-red-700 mt-1 text-xs">{emailValidation}</p>
                 </div>
                 <div class="form-control w-full max-w-s">
                     <label class="label">
                         <span class="text-base font-medium text-gray-900 ">Phone number</span>
                     </label>
                     <input type="text" placeholder="646-100-1000" bind:value={jsonData.contact.phone}
-                           disabled={disabledInfo}
-                           class={`input input-bordered w-full max-w-s ${jsonData.contact.phone===''?('input'+errorClass):''}`}/>
+                           disabled={disabledInfo} on:input={(e)=> regCheck(e.target.value,'phone')}
+                           class={`input input-bordered w-full max-w-s ${jsonData.contact.phone==='' || phoneValidation!=='' ? ('input'+errorClass):''}`}/>
+                    <p class="text-red-700 mt-1 text-xs">{phoneValidation}</p>
                 </div>
                 <div class="form-control w-full max-w-s">
                     <label class="label">

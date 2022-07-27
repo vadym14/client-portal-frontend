@@ -14,8 +14,7 @@ export async function post({request}: any) {
     const customer = await api.getDoc('Customer', rjson.name)
     if (customer) {
         const customer_contact = await api.getValue('Contact', 'user', {'name': customer['customer_primary_contact']})
-        const usr = await api.getValue('User', 'email', {'name': customer_contact['name']})
-        if (usr['email'] == rjson['usr']) {
+        if (customer_contact['user'] == rjson['usr']) {
             const response = await api.login(rjson['usr'], rjson['pwd'])
             status = response['status']
             if (response['status']) {
@@ -28,42 +27,36 @@ export async function post({request}: any) {
                     'last_name': user['last_name'],
                     'email': user['email'],
                 };
-                const contact = await api.getValue('Contact', ['name', 'first_name', 'last_name', 'email_id', 'phone'], {'user': user['name']})
+                const contact = await api.getValue('Contact', ['name', 'first_name', 'last_name', 'email_id', 'phone'], {'name': customer['customer_primary_contact']})
                 if (contact) {
                     contact['doctype'] = 'Contact';
                     data['contact'] = contact;
                     customer['doctype'] = 'Customer';
-                    const jsonData = {
-                        "name": customer['name'],
-                        "date_of_birth": customer['date_of_birth'],
-                        "ssn": ""
-                    };
-                    const res = await api.postApi('tarefinancial.zecsn_ext.portal.onboarding.get_customer_ssn', jsonData)
                     data['customer'] = customer;
-                    const address = await api.getDocList('Address', ['name', 'address_line1', 'city', 'state', 'pincode', 'email_id', 'phone'], {'name': customer['customer_primary_address']}, 0, 1)
+                    const address = await api.getValue('Address', ['name', 'address_line1', 'city', 'state', 'pincode', 'email_id', 'phone'], {'name': customer['customer_primary_address']})
                     if (address) {
-                        address[0]['doctype'] = 'Address';
-                        data['address'] = address[0];1
+                        address['doctype'] = 'Address';
+                        data['address'] = address;
                     }
-                    const envelop = await api.getDocList('DocuSign Envelope', ["envelope_status"],
-                        {'customer': customer['name']}, 0, 1)
+                    const envelop = await api.getValue('DocuSign Envelope', ["envelope_status"],
+                        {'customer': customer['name']})
                     let continue_process = true
-                    if (envelop && envelop.length > 0) {
-                        envelop[0]['doctype'] = 'DocuSign Envelope';
-                        data['envelope'] = envelop[0];
+                    if (envelop && envelop['envelope_status']) {
+                        envelop['doctype'] = 'DocuSign Envelope';
+                        data['envelope'] = envelop;
                     } else {
                         Array.prototype.push.apply(data['_server_messages'], [{
                             'message': 'Envelop does not exist, please contact support.',
                             'indicator': 'red'
                         }])
-                        continue_process = false
+                        continue_process = status = false
                     }
-                    const project = await api.getDocList('Project', ['name', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
-                        {'customer': customer['name']}, 0, 1)
+                    const project = await api.getValue('Project', ['name', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
+                        {'customer': customer['name']})
                     if (continue_process && project) {
-                        project[0]['doctype'] = 'Project';
-                        data['project'] = project[0];
-                        if (envelop[0]['envelope_status'] !== 'Signed' || !project[0]['selected_plan']) {
+                        project['doctype'] = 'Project';
+                        data['project'] = project;
+                        if (envelop['envelope_status'] !== 'Signed' || !project['selected_plan']) {
                             data['plans'] = []
                             let plan_names = [data['project']['plan_1'], data['project']['plan_2'], data['project']['plan_3'], data['project']['plan_4'], data['project']['plan_5']].filter(Boolean)
                             if (plan_names) {
@@ -104,7 +97,7 @@ export async function post({request}: any) {
                                 }
                             }
                         } else {
-                            const plan = await api.getDoc('Payment Terms Template', project[0]['selected_plan'])
+                            const plan = await api.getDoc('Payment Terms Template', project['selected_plan'])
                             if (plan && plan['terms']) {
                                 let credit_duration = function (days) {
                                     var months = Math.floor(days / 30)
@@ -132,6 +125,8 @@ export async function post({request}: any) {
                                     'total_terms': plan['terms'].length,
                                     'docusign_template': plan['docusign_template'],
                                     'credit_duration': credit_duration(credit_days),
+                                    'total_amount':data['project']['unadjusted_amount'],
+                                    'terms': plan['terms'],
                                 }
                             }
                             Array.prototype.push.apply(cookies, response.data.split(';').map(cookie => {
