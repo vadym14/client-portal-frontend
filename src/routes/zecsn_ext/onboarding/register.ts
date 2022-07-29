@@ -1,5 +1,6 @@
 /** @type {import('@sveltejs/kit').RequestHandler} */
 import ZecsnExtAPI from "$lib/zecsn_ext/ZecsnExtAPI";
+import type {UserInfo} from "../../../lib/interfaces/user.interface";
 
 // post register handler
 export async function post({request}: any) {
@@ -41,17 +42,28 @@ export async function post({request}: any) {
         },
         'project': {
             'doctype': 'Project',
+            'name': '',
+            'territory':'',
             'original_creditor': '',
             'creditor_account_number': '',
             'account_open': '',
             'charge_off_date': '',
             'unadjusted_amount': '',
+            'selected_plan': '',
             'plan_1': '',
             'plan_2': '',
             'plan_3': '',
             'plan_4': '',
             'plan_5': '',
-        }
+        },
+        'plans':[ {
+        'name':'',
+        'settlement_amount':'',
+        'forgiven_percentage':'',
+        'total_terms':'',
+        'docusign_template':'',
+        'credit_duration':'',
+    }],
     }
     let status = false
     const rjson = await request.json();
@@ -111,11 +123,13 @@ export async function post({request}: any) {
                     }
                 }
                 const project = await api.getDocList('Project',
-                    ['original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
+                    ['name','territory','original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
                     {'customer': customer['name']}, 0, 1)
                 if (project) {
                     data['project'] = {
                         'doctype': "Project",
+                        'name':project[0].name,
+                        'territory':project[0].territory,
                         'original_creditor': project[0].original_creditor,
                         'creditor_account_number': project[0].creditor_account_number,
                         'account_open': project[0].account_open,
@@ -150,11 +164,11 @@ export async function post({request}: any) {
                                     }
                                     let discount = 0
                                     let credit_days = 0
-                                    plan['terms'].forEach(term => {
+                                    plan['terms'].forEach((term:any) => {
                                         discount += term['discount'] ? term['discount'] / 100 * term['invoice_portion'] : 0
                                         credit_days += term['credit_days']
                                     })
-                                    let settlement_amount = data['project']['unadjusted_amount'] - (discount / 100 * data['project']['unadjusted_amount'])
+                                    const settlement_amount = data['project']['unadjusted_amount'] - (discount / 100 * data['project']['unadjusted_amount'])
                                     data['plans'].push({
                                         'name': plan['name'],
                                         'settlement_amount': settlement_amount.toFixed(2),

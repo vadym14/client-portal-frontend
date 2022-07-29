@@ -55,7 +55,7 @@
                         </div>
                     {/if}
                     <div class=" border rounded">
-                        <InlineCalendar end={end} start={today} bind:store {theme}/>
+                        <InlineCalendar start={today} bind:store {theme}/>
                     </div>
                 </div>
                 <div class="text-2xl mt-8 mb-6 font-medium">Next, you will sign the agreement and verify your ID via DocuSign.</div>

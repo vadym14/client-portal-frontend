@@ -10,9 +10,7 @@
     import Logout from "../../lib/icons/Logout.svelte";
 
     import {page} from '$app/stores';
-    import {api} from "../../lib/_api";
     import * as cookie from "cookie";
-    import {toast} from "@zerodevx/svelte-toast";
 
 
     let user = {loggedIn: false};
@@ -27,7 +25,6 @@
             await goto('/login');
         } else {
             user.loggedIn = true
-            toast.push('Logged in as ' + cookies['full_name'])
         }
     })
 </script>

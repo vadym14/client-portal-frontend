@@ -36,6 +36,8 @@ export interface User {
 }
 
 export interface UserInfo {
+	message?: string,
+	_server_messages?: [],
     plans:[{
 		name?:string,
 		settlement_amount?:string,
@@ -101,11 +103,13 @@ export interface UserInfo {
 	project: {
 		doctype?:string,
 		name?:string,
+		territory?:string,
 		original_creditor?:string,
 		creditor_account_number?:string,
 		account_open?:string,
 		charge_off_date?:string,
 		unadjusted_amount?:string,
+		selected_plan?:string,
 		plan_1?:string,
 		plan_2?:string,
 		plan_3?:string,

@@ -284,7 +284,7 @@ class ZecsnExtAPI {
             throw e.toString()
         }
         if ('exc' in rjson) {
-            console.log(rjson['exc'])
+            // console.log(rjson['exc'])
         }
         if ('_server_messages' in rjson) {
             let messages = JSON.parse(rjson['_server_messages'])

@@ -1,5 +1,6 @@
 /** @type {import('@sveltejs/kit').RequestHandler} */
 import ZecsnExtAPI from "$lib/zecsn_ext/ZecsnExtAPI";
+import ZecsnDocuSign from "../../../lib/zecsn_ext/ZecsnDocuSign";
 
 export async function post({request}: any) {
     let status = false
@@ -58,6 +59,10 @@ export async function post({request}: any) {
         await api.update(rjson['customer'])
         rjson['user']['user_type'] = "Website User"
         rjson['user']['send_welcome_email'] = 0
+
+        let zDocuSign = new ZecsnDocuSign()
+        await zDocuSign.initialize()
+        await zDocuSign.getEnvelope(rjson['customer']['name'])
 
         const user = await api.insert(rjson['user'])
         if (user)

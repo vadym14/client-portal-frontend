@@ -75,7 +75,7 @@ export async function get({request}: any) {
                             'credit_duration': credit_duration(credit_days),
                         }
                     }
-                    if(envelop[0]['envelope_status']!=='Signed') {
+                    if(envelop[0]['envelope_status']!=='signed') {
                         data['plans'] = []
                         let plan_names = [data['project']['plan_1'], data['project']['plan_2'], data['project']['plan_3'], data['project']['plan_4'], data['project']['plan_5']].filter(Boolean)
                         if (plan_names) {

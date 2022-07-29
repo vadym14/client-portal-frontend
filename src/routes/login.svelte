@@ -41,7 +41,8 @@
             handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                if(rjson.data?.envelope?.envelope_status!=='Signed' || !rjson['data']['project']['selected_plan']){
+                if(rjson.data?.envelope?.envelope_status!=='signed' || !rjson['data']['project']['selected_plan']){
+                    $userInfo.user=rjson.data.user;
                     $userInfo.customer=rjson.data.customer;
                     $userInfo.project=rjson.data.project;
                     $userInfo.plans=rjson.data.plans;

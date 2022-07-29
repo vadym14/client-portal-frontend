@@ -1,5 +1,6 @@
 /** @type {import('@sveltejs/kit').RequestHandler} */
 import ZecsnExtAPI from "$lib/zecsn_ext/ZecsnExtAPI";
+import ZecsnDocuSign from "../../../lib/zecsn_ext/ZecsnDocuSign";
 
 export async function post({request}: any) {
     let data: any = {
@@ -38,12 +39,13 @@ export async function post({request}: any) {
                         address['doctype'] = 'Address';
                         data['address'] = address;
                     }
-                    const envelop = await api.getValue('DocuSign Envelope', ["envelope_status"],
-                        {'customer': customer['name']})
+                    let zDocuSign = new ZecsnDocuSign()
+                    await zDocuSign.initialize()
+                    const envelope = await zDocuSign.getEnvelope(customer['name'])
                     let continue_process = true
-                    if (envelop && envelop['envelope_status']) {
-                        envelop['doctype'] = 'DocuSign Envelope';
-                        data['envelope'] = envelop;
+                    if (envelope && envelope['envelope_status']) {
+                        envelope['doctype'] = 'DocuSign Envelope';
+                        data['envelope'] = envelope;
                     } else {
                         Array.prototype.push.apply(data['_server_messages'], [{
                             'message': 'Envelop does not exist, please contact support.',
@@ -51,12 +53,12 @@ export async function post({request}: any) {
                         }])
                         continue_process = status = false
                     }
-                    const project = await api.getValue('Project', ['name', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
+                    const project = await api.getValue('Project', ['name', 'territory', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
                         {'customer': customer['name']})
                     if (continue_process && project) {
                         project['doctype'] = 'Project';
                         data['project'] = project;
-                        if (envelop['envelope_status'] !== 'Signed' || !project['selected_plan']) {
+                        if (envelope['envelope_status'] !== 'signed' || !project['selected_plan']) {
                             data['plans'] = []
                             let plan_names = [data['project']['plan_1'], data['project']['plan_2'], data['project']['plan_3'], data['project']['plan_4'], data['project']['plan_5']].filter(Boolean)
                             if (plan_names) {

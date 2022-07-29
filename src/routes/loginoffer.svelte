@@ -11,6 +11,22 @@
 
     const handleSelectOffer = async (plan) => {
         btnLoading = btnDisable = true;
+        let envelopeArgs = {
+            signerEmail: $userInfo.user.email,
+            signerName: $userInfo.customer.customer_name,
+            signerClientId: $userInfo.customer.name,
+            emailSubject: '',
+            templateId: '',
+            dsReturnUrl: import.meta.env.VITE_DOCU_ACCOUNT_LOCAL_RETURN_URL,
+        };
+        let docuArgs = {
+            accessToken:'' ,
+            basePath: '',
+            accountId: '',
+            envelopeArgs: envelopeArgs
+        };
+        envelopeArgs.emailSubject = `${$userInfo.project.territory} - ${plan.docusign_template} - Settlement Agreement`
+        docuArgs.envelopeArgs = envelopeArgs
         $userInfo.project.selected_plan = plan.name;
         selectOffer = plan.name;
         const response = await api('post', `onboarding/plan`, $userInfo);

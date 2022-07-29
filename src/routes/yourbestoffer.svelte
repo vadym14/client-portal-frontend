@@ -22,7 +22,20 @@
     const openModal = () => {
         return true;
     };
-
+    let envelopeArgs = {
+        signerEmail: $userInfo.user.email,
+        signerName: $userInfo.customer.customer_name,
+        signerClientId: $userInfo.customer.name,
+        emailSubject: '',
+        templateId: '',
+        dsReturnUrl: import.meta.env.VITE_DOCU_ACCOUNT_LOCAL_RETURN_URL,
+    };
+    let docuArgs = {
+        accessToken:'' ,
+        basePath: '',
+        accountId: '',
+        envelopeArgs: envelopeArgs
+    };
     let selectOffer = ';'
     let userData = $userInfo, btnLoading = false, btnDisable = false;
     let previousData = {};
@@ -46,16 +59,19 @@
     const handleSave = async () => {
         btnLoading = btnDisable = true
         if (selectOffer !== '') {
-            const response = await api('post', `onboarding/plan`, $userInfo);
+            let userInfo = userData
+            userInfo.docuArgs = docuArgs
+            const response = await api('post', `onboarding/plan`, userInfo);
             let rjson = await response.json()
             handleServerMessages(rjson.data._server_messages)
             if (rjson.status) {
-                toast.push("Congrats, you've completed the process.", {
+                toast.push("Information saved. Please login to continue.", {
                     theme: {
                         '--toastBackground': '#48BB78',
                         '--toastBarBackground': '#2F855A'
                     }
                 })
+                // goto('/login')
             }
             btnLoading = btnDisable = false
         } else {
@@ -71,7 +87,10 @@
 
     const handleSelectOffer = (plan) => {
         $userInfo.project.selected_plan = plan.name;
+        envelopeArgs.emailSubject = `${$userInfo.project.territory} - ${plan.docusign_template} - Settlement Agreement`
+        docuArgs.envelopeArgs = envelopeArgs
         // $userInfo.project.charge_off_date = plan.name;
+        // console.log('project => ',$userInfo.project)
         selectOffer = plan.name;
         // isOpenModal.set(plan.docusign_template)
     }
