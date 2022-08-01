@@ -11,7 +11,7 @@
 
     const handleSelectOffer = async (plan) => {
         btnLoading = btnDisable = true;
-        let envelopeArgs = {
+        /*let envelopeArgs = {
             signerEmail: $userInfo.user.email,
             signerName: $userInfo.customer.customer_name,
             signerClientId: $userInfo.customer.name,
@@ -28,7 +28,7 @@
         envelopeArgs.emailSubject = `${$userInfo.project.territory} - ${plan.docusign_template} - Settlement Agreement`
         docuArgs.envelopeArgs = envelopeArgs
         $userInfo.project.selected_plan = plan.name;
-        selectOffer = plan.name;
+        selectOffer = plan.name;*/
         const response = await api('post', `onboarding/plan`, $userInfo);
         let rjson = await response.json()
         handleServerMessages(rjson.data._server_messages)

@@ -29,7 +29,10 @@ export async function post({request}: any) {
             if (!rjson['docuArgs']) {
                 rjson['docuArgs'] = {}
             }
-
+            let zDocuSign = new ZecsnDocuSign()
+            await zDocuSign.initialize()
+            await zDocuSign.getEnvelope(rjson['customer']['name'])
+            status=true
             /*let zDocuSign = new ZecsnDocuSign()
             await zDocuSign.initialize()
             let template_name = `${rjson.project.territory} - ${plan['docusign_template']} - Settlement Agreement`
