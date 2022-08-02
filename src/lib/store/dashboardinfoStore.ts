@@ -53,6 +53,7 @@ export const DasboardInfo = writable<DashBoardInfo>(browser && storedData || {
         'plan_3':'',
         'plan_4':'',
         'plan_5':'',
+        'territory':'',
     },
     plan:{
         'doctype': '',

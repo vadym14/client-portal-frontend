@@ -9,28 +9,27 @@
     // email validation regex
     const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     let regex = /^(?:[a-zA-Z]){1}[-](?:[a-zA-Z]){3}[-](?:\d){2}[-](?:\d){5}$/s;
-    let email = '', name = '', password = '', errorClass = '', emailValidation='',accValidation='',
+    let email = '', name = '', password = '', errorClass = '', emailValidation = '', accValidation = '',
         btnDisable = false,
         btnLoading = false, errorStatus = false, errorMessage = '';
     const handleLogin = async () => {
         btnDisable = btnLoading = true;
-        emailValidation = accValidation =  errorClass = '';
+        emailValidation = accValidation = errorClass = '';
 
         if (email === '' || name === '' || password === '') {
             errorClass = '-error';
             btnDisable = btnLoading = false;
         }
-         if(!emailRegex.test(email)){
+        if (!emailRegex.test(email)) {
             errorClass = '-error';
             btnDisable = btnLoading = false;
             emailValidation = 'You have entered an invalid email address!';
         }
-         if(!regex.test(name)){
+        if (!regex.test(name)) {
             errorClass = '-error';
             btnDisable = btnLoading = false;
             accValidation = 'please match the format. e.g., C-XXX-00-00000';
-        }
-        else {
+        } else {
             const jsonData = {
                 name,
                 usr: email,
@@ -41,14 +40,14 @@
             handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                if(rjson.data?.envelope?.envelope_status!=='signed' || !rjson['data']['project']['selected_plan']){
-                    $userInfo.user=rjson.data.user;
-                    $userInfo.customer=rjson.data.customer;
-                    $userInfo.project=rjson.data.project;
-                    $userInfo.plans=rjson.data.plans;
+                if (rjson.data?.envelope?.envelope_status !== 'completed' || !rjson['data']['project']['selected_plan']) {
+                    $userInfo.user = rjson.data.user;
+                    $userInfo.customer = rjson.data.customer;
+                    $userInfo.project = rjson.data.project;
+                    $userInfo.plans = rjson.data.plans;
                     await goto('/loginoffer')
-                }else{
-                    $DasboardInfo=rjson.data;
+                } else {
+                    $DasboardInfo = rjson.data;
                     toast.push(rjson.data.message)
                     await goto('/dashboard');
                 }
@@ -61,18 +60,18 @@
             }
         }
     }
-   const regCheck = (value,name) => {
+    const regCheck = (value, name) => {
         emailValidation = '';
         accValidation = '';
-       errorClass = '';
-       if (!emailRegex.test(value) && name === 'email') {
+        errorClass = '';
+        if (!emailRegex.test(value) && name === 'email') {
             emailValidation = 'You have entered an invalid email address!';
-           errorClass = '-error';
+            errorClass = '-error';
         }
-       if(!regex.test(value) && name === 'name'){
-           accValidation = 'please match the format. e.g., C-XXX-00-00000';
-           errorClass = '-error';
-       }
+        if (!regex.test(value) && name === 'name') {
+            accValidation = 'please match the format. e.g., C-XXX-00-00000';
+            errorClass = '-error';
+        }
     }
 
 </script>

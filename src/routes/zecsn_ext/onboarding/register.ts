@@ -4,7 +4,7 @@ import type {UserInfo} from "../../../lib/interfaces/user.interface";
 
 // post register handler
 export async function post({request}: any) {
-    let data = {
+    let data :UserInfo = {
         'message': '',
         '_server_messages': [],
         'customer': {
@@ -43,13 +43,13 @@ export async function post({request}: any) {
         'project': {
             'doctype': 'Project',
             'name': '',
-            'territory':'',
             'original_creditor': '',
             'creditor_account_number': '',
             'account_open': '',
             'charge_off_date': '',
             'unadjusted_amount': '',
             'selected_plan': '',
+            'territory': '',
             'plan_1': '',
             'plan_2': '',
             'plan_3': '',

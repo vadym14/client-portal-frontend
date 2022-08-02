@@ -1,6 +1,5 @@
 <script lang="ts">
     import {goto} from '$app/navigation';
-    import {onMount} from "svelte";
     import {api} from "../lib/_api";
     import {userInfo} from "../lib/store/UserInfoStore";
     import {handleServerMessages} from "$lib/utils/handleServerMessages";
@@ -14,15 +13,17 @@
             accValidation = 'please match the format. e.g., C-XXX-00-00000';
         }
     }
-    let jsonData = {register:{
-        name: '',
-        date_of_birth: '',
-        ssn: '',
-    }}
+    let jsonData = {
+        register: {
+            name: '',
+            date_of_birth: '',
+            ssn: '',
+        }
+    }
     let errorClass = '';
     let errorStatus = false;
     let errorMessage = '';
-    let btnDisable = false,btnLoading = false;
+    let btnDisable = false, btnLoading = false;
 
     const handleRegSave = async () => {
         accValidation = '';
@@ -107,7 +108,9 @@
                                    class={`input input-bordered w-full max-w-s ${jsonData.register.ssn===''?errorClass:''}`}/>
                         </div>
                     </div>
-                    <button disabled={btnDisable} class={`btn btn-primary w-full mt-10 ${btnLoading?'loading':''}`} on:click={()=>handleRegSave()}>Continue</button>
+                    <button disabled={btnDisable} class={`btn btn-primary w-full mt-10 ${btnLoading?'loading':''}`}
+                            on:click={()=>handleRegSave()}>Continue
+                    </button>
                 </div>
             </div>
         </div>

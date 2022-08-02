@@ -1,25 +1,35 @@
 <script>
     import {goto} from "$app/navigation";
-    import {onMount} from "svelte";
     import {api} from "../lib/_api";
     import {InlineCalendar} from "svelte-calendar";
     import {userInfo} from "../lib/store/UserInfoStore.ts";
     import {handleServerMessages} from "$lib/utils/handleServerMessages";
-    import {toast} from "@zerodevx/svelte-toast";
     import dayjs from 'dayjs';
 
     let userData = $userInfo, btnLoading = false, btnDisable = false;
-    let store;const today=new Date();
+    let store;
+    const today = new Date();
     const theme = {
         calendar: {
             width: '24rem',
             shadow: '0px 0px 5px rgba(0, 0, 0, 0.25)'
         }
     };
-    const handleSave=async ()=>{
-        btnDisable=btnLoading=true;
-        $:console.log("date",dayjs($store?.selected).format('MM/DD/YYYY'))
-        btnDisable=btnLoading=false;
+    const handleSave = async () => {
+        const jsonData = {
+            'name': $userInfo.project.name,
+            'start_date': dayjs($store?.selected).format('YYYY-MM-DD'),
+            'doctype': 'Project'
+        }
+        const response = await api('POST', `onboarding/selectDate`, jsonData);
+        let rjson = await response.json()
+        handleServerMessages(rjson.data._server_messages)
+        if (rjson.status) {
+            goto('/docusign')
+        }
+        btnDisable = btnLoading = true;
+        // $:console.log("date",dayjs($store?.selected).format('MM/DD/YYYY'))
+        btnDisable = btnLoading = false;
     }
 </script>
 <section class="h-screen flex">
@@ -58,7 +68,9 @@
                         <InlineCalendar start={today} bind:store {theme}/>
                     </div>
                 </div>
-                <div class="text-2xl mt-8 mb-6 font-medium">Next, you will sign the agreement and verify your ID via DocuSign.</div>
+                <div class="text-2xl mt-8 mb-6 font-medium">Next, you will sign the agreement and verify your ID via
+                    DocuSign.
+                </div>
                 <div class="flex justify-end">
                     <button class={`btn btn-primary w-52 ${btnLoading?'loading':''}`}
                             disabled={btnDisable} on:click={()=>{handleSave()}}>Continue

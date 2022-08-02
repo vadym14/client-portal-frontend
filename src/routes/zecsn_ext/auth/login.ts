@@ -41,7 +41,7 @@ export async function post({request}: any) {
                     }
                     let zDocuSign = new ZecsnDocuSign()
                     await zDocuSign.initialize()
-                    const envelope = await zDocuSign.getEnvelope(customer['name'])
+                    const envelope = await zDocuSign.getEnvelopeUpdate(customer['name'])
                     let continue_process = true
                     if (envelope && envelope['envelope_status']) {
                         envelope['doctype'] = 'DocuSign Envelope';
@@ -58,7 +58,7 @@ export async function post({request}: any) {
                     if (continue_process && project) {
                         project['doctype'] = 'Project';
                         data['project'] = project;
-                        if (envelope['envelope_status'] !== 'signed' || !project['selected_plan']) {
+                        if (envelope['envelope_status'] !== 'completed' || !project['selected_plan']) {
                             data['plans'] = []
                             let plan_names = [data['project']['plan_1'], data['project']['plan_2'], data['project']['plan_3'], data['project']['plan_4'], data['project']['plan_5']].filter(Boolean)
                             if (plan_names) {

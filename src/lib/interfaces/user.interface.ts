@@ -46,7 +46,7 @@ export interface UserInfo {
 		docusign_template?:string,
 		credit_duration?:string,
 	}],
-	register:{
+	register?:{
 		name?: string;
 		date_of_birth?: string;
 		ssn?: string;
@@ -103,13 +103,13 @@ export interface UserInfo {
 	project: {
 		doctype?:string,
 		name?:string,
-		territory?:string,
 		original_creditor?:string,
 		creditor_account_number?:string,
 		account_open?:string,
 		charge_off_date?:string,
 		unadjusted_amount?:string,
 		selected_plan?:string,
+		territory?:string,
 		plan_1?:string,
 		plan_2?:string,
 		plan_3?:string,
@@ -163,6 +163,7 @@ export interface DashBoardInfo {
 		account_open?:string,
 		charge_off_date?:string,
 		unadjusted_amount?:string,
+		territory?:string,
 		plan_1?:string,
 		plan_2?:string,
 		plan_3?:string,

@@ -1,4 +1,4 @@
-import docusign, {DocumentTemplate, TemplateCustomFields, TextCustomField} from "docusign-esign";
+import docusign from "docusign-esign";
 import fs from "fs";
 import jwtConfig from '$lib/config/jwtConfig.json'
 import ZecsnExtAPI from "./ZecsnExtAPI";
@@ -23,8 +23,8 @@ class ZecsnDocuSign {
         let envelope = await this.API.getValue('DocuSign Envelope', ['envelope_id', 'envelope_status'], {'customer': customer})
         if (!envelope['envelope_id']) {
             let project = await this.API.getValue('Project', 'name', {'customer': customer})
-            let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
-            let results = await EnvelopesApi.createEnvelope(this.docuArgs.apiAccountId);
+            let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+            let results = await envelopesApi.createEnvelope(this.docuArgs.apiAccountId);
             console.log(results)
             envelope = {
                 'customer': customer,
@@ -39,125 +39,117 @@ class ZecsnDocuSign {
         return envelope
     }
 
-    getEnvelopeStatus = async (customer: string) => {
-       let results
-        let envelope = await this.API.getValue('DocuSign Envelope', ['name','envelope_id', 'envelope_status'], {'customer': customer})
-        if (envelope['envelope_status'] !== 'signed') {
-            let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
-             results = await EnvelopesApi.getEnvelope(this.docuArgs.apiAccountId,envelope['envelope_id']);
+    getEnvelopeUpdate = async (customer: string) => {
+        let envelope = await this.API.getValue('DocuSign Envelope', ['name', 'envelope_id', 'envelope_status'], {'customer': customer})
+        if (envelope['envelope_status'] !== 'completed') {
+            let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+            let results = await envelopesApi.getEnvelope(this.docuArgs.apiAccountId, envelope['envelope_id']);
             envelope = {
                 'name': envelope['name'],
+                'envelope_id': results.envelopeId,
                 'envelope_status': results.status,
                 'doctype': 'DocuSign Envelope'
             }
             envelope = await this.API.update(envelope)
-            if(envelope['envelope_status'] ==='signed'){
-                await this.createIdEvidence(envelope['envelope_id'],customer)
+            if (envelope['envelope_status'] === 'completed') {
+                await this.createIdEvidence(envelope['envelope_id'], customer)
+                await this.createInvoice(customer)
             }
         }
-        return results
+        return envelope
     }
 
-    getReceipentIdVerficaitonEvent = async (envelopeId:string) =>{
+    getReceipentIdVerficaitonEvent = async (envelopeId: string) => {
 
-        const EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
-        const recipients = await EnvelopesApi.listRecipients(this.docuArgs.apiAccountId,envelopeId)
-        const recipientId :string|any = recipients.signers[0].recipientIdGuid
-        const proofLink = await EnvelopesApi.createRecipientProofFileResourceToken('',this.docuArgs.apiAccountId,envelopeId,recipientId)
+        const envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+        const recipients = await envelopesApi.listRecipients(this.docuArgs.apiAccountId, envelopeId)
+        const recipientId: string | any = recipients.signers[0].recipientIdGuid
+        const proofLink = await envelopesApi.createRecipientProofFileResourceToken('', this.docuArgs.apiAccountId, envelopeId, recipientId)
 
         const res = await fetch(`${proofLink.proofBaseURI}/api/v1/events/person/${recipientId}`, {
             method: 'GET',
-            headers:  {
+            headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${proofLink.resourceToken}`, //Server Token
             },
         })
-        const results = await res.json()
-        return {
-            "events": [
-                {
-                    "event_type": "IdVerificationPhotoIdSuccess",
-                    "entity_type": "person",
-                    "schema_version": 0,
-                    "creation_date": "2020-06-24T04:06:12.2009844Z",
-                    "data": {
-                        "trace_uid": "a05a1aa7-XXXX-XXXX-XXXX-28afafd6e1c2",
-                        "session_id": "3d79ae61-XXXX-XXXX-XXXX-e108f0ebe200",
-                        "task_uid": "dc7b47a0-XXXX-XXXX-XXXX-5dd360c72737",
-                        "person_id": "e1eb23a9-XXXX-XXXX-XXXX-1181796b6003",
-                        "person_name": "Jasmine Price",
-                        "type_of_id": "PHOTOID",
-                        "country_selected_by_signer": "US",
-                        "provider_name": "MITEK",
-                        "id_number": "123456",
-                        "expiration_date": "123456",
-                    },
-                    "has_media": false
-                },
-                {
-                    "event_type": "IdVerificationPhotoIdImageSent",
-                    "entity_type": "person",
-                    "schema_version": 0,
-                    "creation_date": "2020-06-24T04:06:11.6948346Z",
-                    "data": {
-                        "trace_uid": "a05a1aa7-XXXX-XXXX-XXXX-28afafd6e1c2",
-                        "session_id": "3d79ae61-XXXX-XXXX-XXXX-e108f0ebe200",
-                        "task_uid": "dc7b47a0-XXXX-XXXX-XXXX-5dd360c72737",
-                        "copy_of_id_front": "https://proof-d.docusign.net/api/v1/events/person/e1eb23a9-XXXX-XXXX-XXXX-1181796b6003/f42d8d8d-XXXX-XXXX-XXXX-4a780140087a/media/8840a69e-XXXX-XXXX-XXXX-2b1996ec2bd7",
-                        "copy_of_id_back": "https://proof-d.docusign.net/api/v1/events/person/e1eb23a9-XXXX-XXXX-XXXX-1181796b6003/f42d8d8d-XXXX-XXXX-XXXX-4a780140087a/media/14654b7b-XXXX-XXXX-XXXX-b1060dac0ff8"
-                    },
-                    "has_media": true
-                },
-                {
-                    "event_type": "envelopesent",
-                    "entity_type": "person",
-                    "schema_version": 0,
-                    "creation_date": "2020-06-24T03:44:16.5915791Z",
-                    "data": {
-                        "envelope_id": "dcd9f867-XXXX-XXXX-XXXX-2254008d4d9f",
-                        "recipient_id": "e1eb23a9-XXXX-XXXX-XXXX-1181796b6003",
-                        "recipient_name": "Jasmine Price",
-                        "recipient_email": "JPrice@example.com",
-                        "created_by": "Jasmine Price"
-                    },
-                    "has_media": false
-                }
-            ],
-            "paging": {
-                "page_index": 1,
-                "page_size": 50,
-                "total_items": 3,
-                "total_pages": 1,
-                "has_previous_page": false,
-                "has_next_page": false
+        return await res.json()
+    }
+
+    createIdEvidence = async (envelopeId: string, customer: string) => {
+        let recipientIDV = await this.getReceipentIdVerficaitonEvent(envelopeId)
+        let recipientIDValue, IdVerification = null
+        if (recipientIDV && recipientIDV['events'])
+            recipientIDValue = recipientIDV['events'].filter(item => item.event_type === 'IdVerificationPhotoIdSuccess')[0];
+        if (recipientIDValue) {
+            let project = await this.API.getValue('Project', 'name', {'customer': customer})
+            IdVerification = {
+                'doctype': 'ID Verification',
+                'verification_status': 'Pass',
+                'verification_provider': recipientIDValue.data.provider_name,
+                'docusign_transaction_number': recipientIDValue.data.trace_uid,
+                'provider_transaction_number': recipientIDValue.data.session_id,
+                'id_name': recipientIDValue.data.person_name,
+                'id_type': recipientIDValue.data.type_of_id,
+                'id_number': recipientIDValue.data.id_number,
+                'id_expiration_date': recipientIDValue.data.expiration_date,
+                'customer': customer,
+                'project': project['name'],
+            }
+            IdVerification = await this.API.insert(IdVerification)
+        }
+        return IdVerification
+    }
+
+    createInvoice = async (customer: string) => {
+        const invoiceData = {
+            'doctype': 'Sales Invoice',
+            'naming_series': 'I-ONP-.YY.-',
+            'customer': '',
+            'project': '',
+            'cost_center': 'Main - TFS',
+            'territory': '',
+            'exempt_from_sales_tax': 1,
+            'payment_terms_template': '',
+            'items': [{
+                'doctype': 'Sales Invoice Item',
+                'item_code': 'Tare Financial Project',
+                'item_name': '',
+                'description': '',
+                'qty': 1,
+                'uom': 'Income',
+                'conversion_factor': 1,
+                'rate': '',
+                'income_account': '',
+                'discount_account': '',
+                'cost_center': 'Main - TFS',
+                'project': '',
+            }]
+        }
+        invoiceData['customer'] = customer
+        const project = await this.API.getValue('Project', ['name', 'project_name', 'territory', 'selected_plan', 'unadjusted_amount'],
+            {'customer': customer})
+        if (project) {
+            invoiceData['project'] = project['name']
+            invoiceData['territory'] = project['territory']
+            invoiceData['payment_terms_template'] = project['selected_plan']
+            invoiceData['items'][0]['item_name'] = project['project_name']
+            invoiceData['items'][0]['description'] = project['project_name']
+            invoiceData['items'][0]['rate'] = project['unadjusted_amount']
+            invoiceData['items'][0]['project'] = project['name']
+            const company = await this.API.getValue('Company', ['default_income_account', 'default_discount_account'], [])
+            if (company) {
+                invoiceData['items'][0]['income_account'] = company['default_income_account']
+                invoiceData['items'][0]['discount_account'] = company['default_discount_account']
+                return await this.API.insert(invoiceData)
             }
         }
     }
 
-    createIdEvidence = async (envelopeId:string,customer:string) =>{
-        let recipientIDV = await this.getReceipentIdVerficaitonEvent(envelopeId)
-        let recipientIDValue = recipientIDV.filter(item => item.event_type === 'IdVerificationPhotoIdSuccess');
-        let project = await this.API.getValue('Project', 'name', {'customer': customer})
-        const IdVerification = {
-            'doctype': 'ID Verification',
-            'verification_status':'Pass',
-            'verification_provider':recipientIDValue.data.provider_name,
-            'docusign_transaction_number':recipientIDValue.data.trace_uid,
-            'provider_transaction_number':recipientIDValue.data.session_id,
-            'id_name':recipientIDValue.data.person_name,
-            'id_type':recipientIDValue.data.type_of_id,
-            'id_number':recipientIDValue.data.id_number,
-            'id_expiration_date':recipientIDValue.data.expiration_date,
-            'customer':customer,
-            'project':project['name'],
-        }
-        return await this.API.insert(IdVerification)
-    }
-
     getTemplate = async (template_name: string) => {
-        let TemplatesApi = new docusign.TemplatesApi(this.dsApiClient)
-        let results = await TemplatesApi.listTemplates(this.docuArgs.apiAccountId, {
+        let templatesApi = new docusign.TemplatesApi(this.dsApiClient)
+        let results = await templatesApi.listTemplates(this.docuArgs.apiAccountId, {
             search_text: template_name
         });
         let response = null
@@ -173,13 +165,23 @@ class ZecsnDocuSign {
         let envelope = await this.getEnvelope(customer)
         let template = await this.getTemplate(template_name)
         if (envelope['envelope_id'] && template) {
-            let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
-            let documentTemplateList: docusign.DocumentTemplateList = {documentTemplates: [{templateId: template.templateId}]};
             try {
-                let results = await EnvelopesApi.applyTemplate(this.docuArgs.apiAccountId, envelope['envelope_id'], {
-                    preserveTemplateRecipient: 'false',
-                    documentTemplateList: documentTemplateList
-                })
+                let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+                let continue_process = true
+                let templates = await envelopesApi.listTemplates(this.docuArgs.apiAccountId, envelope['envelope_id'])
+                for (const docTemplate of templates.templates) {
+                    if (docTemplate.templateId == template.templateId)
+                        continue_process = false
+                    else
+                        await envelopesApi.deleteTemplatesFromDocument(this.docuArgs.apiAccountId, envelope['envelope_id'], docTemplate.documentId, docTemplate.templateId)
+                }
+                if (continue_process) {
+                    let documentTemplateList: docusign.DocumentTemplateList = {documentTemplates: [{templateId: template.templateId}]};
+                    let results = await envelopesApi.applyTemplate(this.docuArgs.apiAccountId, envelope['envelope_id'], {
+                        preserveTemplateRecipient: 'false',
+                        documentTemplateList: documentTemplateList
+                    })
+                }
                 return true
             } catch (error) {
                 let errorBody = error && error.response && error.response.body,
@@ -196,10 +198,10 @@ class ZecsnDocuSign {
         let template = await this.getTemplate(template_name)
         let project = await this.API.getValue('Project', 'name', {'customer': customer})
         if (envelope['envelope_id'] && template && project['name']) {
-            let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+            let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             try {
                 let customFields: docusign.TemplateCustomFields = {textCustomFields: []}
-                let envCustomFields = await EnvelopesApi.listCustomFields(this.docuArgs.apiAccountId, envelope['envelope_id'])
+                let envCustomFields = await envelopesApi.listCustomFields(this.docuArgs.apiAccountId, envelope['envelope_id'])
                 envCustomFields.textCustomFields.forEach(field => {
                     switch (field.name) {
                         case 'Customer':
@@ -212,7 +214,7 @@ class ZecsnDocuSign {
                             break;
                     }
                 })
-                let results = await EnvelopesApi.updateCustomFields(this.docuArgs.apiAccountId, envelope['envelope_id'], {
+                let results = await envelopesApi.updateCustomFields(this.docuArgs.apiAccountId, envelope['envelope_id'], {
                     customFields: customFields
                 })
                 return true
@@ -229,16 +231,17 @@ class ZecsnDocuSign {
     addSigner = async (customer: string, contact, template_name: string) => {
         let envelope = await this.getEnvelope(customer)
         let template = await this.getTemplate(template_name)
-        console.log(contact)
         if (envelope['envelope_id'] && template) {
             try {
-                let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+                let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
                 let continue_process = true
-                let recipient = await EnvelopesApi.listRecipients(this.docuArgs.apiAccountId, envelope['envelope_id'])
-                recipient.signers.forEach(signer => {
+                let recipient = await envelopesApi.listRecipients(this.docuArgs.apiAccountId, envelope['envelope_id'])
+                for (const signer of recipient.signers) {
                     if (signer.email == contact['email_id'])
                         continue_process = false
-                })
+                    else
+                        await envelopesApi.deleteRecipient(this.docuArgs.apiAccountId, envelope['envelope_id'], signer.recipientId)
+                }
                 if (continue_process) {
                     let accountsApi = new docusign.AccountsApi(this.dsApiClient)
                     let result = await accountsApi.getAccountIdentityVerification(this.docuArgs.apiAccountId);
@@ -255,7 +258,7 @@ class ZecsnDocuSign {
                             identityVerification: {'workflowId': workflowId, 'steps': null}
                         }]
                     }
-                    let results = await EnvelopesApi.createRecipient(this.docuArgs.apiAccountId, envelope['envelope_id'], {
+                    let results = await envelopesApi.createRecipient(this.docuArgs.apiAccountId, envelope['envelope_id'], {
                         recipients: recipients
                     })
                 }
@@ -273,12 +276,12 @@ class ZecsnDocuSign {
         let envelope = await this.getEnvelope(customer)
         // Todo Embedded Signing
         if (envelope['envelope_id']) {
-            let EnvelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
+            let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             const envelopeModification: docusign.Envelope = {
                 status: 'sent'
             }
             try {
-                await EnvelopesApi.update(this.docuArgs.apiAccountId, envelope['envelope_id'], {
+                await envelopesApi.update(this.docuArgs.apiAccountId, envelope['envelope_id'], {
                     advancedUpdate: 'true',
                     envelope: envelopeModification
                 })
@@ -288,7 +291,7 @@ class ZecsnDocuSign {
                     signerClientId: customer
                 }
                 let viewRequest = await this.makeRecipientViewRequest(args);
-                let results = await EnvelopesApi.createRecipientView(this.docuArgs.apiAccountId, envelope['envelope_id'],
+                let results = await envelopesApi.createRecipientView(this.docuArgs.apiAccountId, envelope['envelope_id'],
                     {recipientViewRequest: viewRequest});
 
                 return ({envelopeId: envelope['envelope_id'], redirectUrl: results.url})
@@ -301,6 +304,8 @@ class ZecsnDocuSign {
             }
         }
     }
+
+
     makeRecipientViewRequest = async (args: any) => {
         // Data for this method
         // args.dsReturnUrl
@@ -309,38 +314,13 @@ class ZecsnDocuSign {
         // args.signerClientId
         // args.dsPingUrl
 
-        let viewRequest = new docusign.RecipientViewRequest();
-
-        // Set the url where you want the recipient to go once they are done signing
-        // should typically be a callback route somewhere in your app.
-        // The query parameter is included as an example of how
-        // to save/recover state information during the redirect to
-        // the DocuSign signing ceremony. It's usually better to use
-        // the session mechanism of your web framework. Query parameters
-        // can be changed/spoofed very easily.
-        viewRequest.returnUrl = import.meta.env.VITE_DOCU_ACCOUNT_LOCAL_RETURN_URL;
-
-        // How has your app authenticated the user? In addition to your app's
-        // authentication, you can include authenticate steps from DocuSign.
-        // Eg, SMS authentication
-        viewRequest.authenticationMethod = 'none';
-
-        // Recipient information must match embedded recipient info
-        // we used to create the envelope.
-        viewRequest.email = args.signerEmail;
-        viewRequest.userName = args.signerName;
-        viewRequest.clientUserId = args.signerClientId;
-
-        // DocuSign recommends that you redirect to DocuSign for the
-        // Signing Ceremony. There are multiple ways to save state.
-        // To maintain your application's session, use the pingUrl
-        // parameter. It causes the DocuSign Signing Ceremony web page
-        // (not the DocuSign server) to send pings via AJAX to your
-        // app,
-        // viewRequest.pingFrequency = 600; // seconds
-        // NOTE: The pings will only be sent if the pingUrl is an https address
-        // viewRequest.pingUrl = args.dsPingUrl; // optional setting
-
+        let viewRequest: docusign.RecipientViewRequest = {
+            returnUrl: import.meta.env.VITE_DOCU_ACCOUNT_LOCAL_RETURN_URL,
+            authenticationMethod: 'none',
+            email: args.signerEmail,
+            userName: args.signerName,
+            clientUserId: args.signerClientId
+        }
         return viewRequest
     }
 

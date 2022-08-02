@@ -7,9 +7,9 @@
 
     onMount(async () => {
         const jsonData = {
-            name:$userInfo.customer.name
+            name: $userInfo.customer.name
         }
-        const response = await api('POST', `auth/docuSign`,jsonData);
+        const response = await api('POST', `auth/docuSign`, jsonData);
         let rjson = await response.json()
         if (rjson.status) {
             await goto('/login')

@@ -9,7 +9,6 @@
     import {handleServerMessages} from "$lib/utils/handleServerMessages";
     import {toast} from "@zerodevx/svelte-toast";
     import {DasboardInfo} from "../lib/store/dashboardinfoStore.ts";
-    import login from "./login.svelte";
 
     let store;
     const theme = {
@@ -31,7 +30,7 @@
         dsReturnUrl: import.meta.env.VITE_DOCU_ACCOUNT_LOCAL_RETURN_URL,
     };
     let docuArgs = {
-        accessToken:'' ,
+        accessToken: '',
         basePath: '',
         accountId: '',
         envelopeArgs: envelopeArgs
@@ -42,10 +41,6 @@
     onMount(async () => {
         if ($DasboardInfo.name !== '') {
             console.log('DasboardInfo.customer.name')
-            // userData.register.name=$DasboardInfo?.name;
-            // userData.register.ssn=$DasboardInfo?.ssn;
-            // userData.register.date_of_birth=$DasboardInfo?.date_of_birth;
-            // $userInfo=userData;
         } else {
             previousData = {...$userInfo};
             if (previousData === {} || previousData.register?.name === undefined || previousData.register?.ssn === undefined) {
@@ -71,7 +66,7 @@
                         '--toastBarBackground': '#2F855A'
                     }
                 })
-                // goto('/login')
+                await goto('/login')
             }
             btnLoading = btnDisable = false
         } else {
@@ -89,10 +84,7 @@
         $userInfo.project.selected_plan = plan.name;
         envelopeArgs.emailSubject = `${$userInfo.project.territory} - ${plan.docusign_template} - Settlement Agreement`
         docuArgs.envelopeArgs = envelopeArgs
-        // $userInfo.project.charge_off_date = plan.name;
-        // console.log('project => ',$userInfo.project)
         selectOffer = plan.name;
-        // isOpenModal.set(plan.docusign_template)
     }
 </script>
 <section class="h-screen flex">

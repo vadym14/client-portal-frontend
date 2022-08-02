@@ -5,7 +5,6 @@
     import {goto} from "$app/navigation";
     import * as cookie from 'cookie';
     import {page} from "$app/stores";
-    import {api} from "../lib/_api";
 
     const options = {theme: {'--toastBackground': '#570df8', '--toastBarBackground': '#4506cb'}}
 

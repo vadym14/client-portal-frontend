@@ -64,7 +64,7 @@
     //     const data=await response.json()
     //     $DasboardInfo={...data.data}
     //     jsonData={...data.data};
-    //     if(data.data.envelope.envelope_status!=='signed'){
+    //     if(data.data.envelope.envelope_status!=='completed'){
     //         await goto('/yourbestoffer')
     //     }
     // }
