@@ -4,8 +4,6 @@
     import {userInfo} from "$lib/store/UserInfoStore";
     import {handleServerMessages} from "$lib/utils/handleServerMessages";
 
-    let url = '', status = false
-
     let btnLoading = false, btnDisable = false;
     const handleSave = async () => {
         btnLoading = btnDisable = true;
@@ -13,10 +11,9 @@
         let rjson = await response.json()
         handleServerMessages(rjson.data._server_messages)
         if (rjson.status) {
-            url = rjson.data.redirectUrl
-            goto(url)
+            await goto(rjson.data.message)
+        } else {
             btnLoading = btnDisable = false;
-            status = rjson.status
         }
     }
 

@@ -20,7 +20,7 @@ class ZecsnDocuSign {
     }
 
     getEnvelope = async (customer: string) => {
-        let envelope = await this.API.getValue('DocuSign Envelope', ['envelope_id', 'envelope_status'], {'customer': customer})
+        let envelope = await this.API.getValue('DocuSign Envelope', ['name', 'envelope_id', 'envelope_status'], {'customer': customer})
         if (!envelope['envelope_id']) {
             let project = await this.API.getValue('Project', 'name', {'customer': customer})
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
@@ -40,7 +40,7 @@ class ZecsnDocuSign {
     }
 
     getEnvelopeUpdate = async (customer: string) => {
-        let envelope = await this.API.getValue('DocuSign Envelope', ['name', 'envelope_id', 'envelope_status'], {'customer': customer})
+        let envelope = await this.getEnvelope(customer)
         if (envelope['envelope_status'] !== 'completed') {
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             let results = await envelopesApi.getEnvelope(this.docuArgs.apiAccountId, envelope['envelope_id']);
