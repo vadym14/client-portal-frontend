@@ -169,11 +169,13 @@ class ZecsnDocuSign {
                 let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
                 let continue_process = true
                 let templates = await envelopesApi.listTemplates(this.docuArgs.apiAccountId, envelope['envelope_id'])
-                for (const docTemplate of templates.templates) {
-                    if (docTemplate.templateId == template.templateId)
-                        continue_process = false
-                    else
-                        await envelopesApi.deleteTemplatesFromDocument(this.docuArgs.apiAccountId, envelope['envelope_id'], docTemplate.documentId, docTemplate.templateId)
+                if (templates && templates.templates) {
+                    for (const docTemplate of templates.templates) {
+                        if (docTemplate.templateId == template.templateId)
+                            continue_process = false
+                        else
+                            await envelopesApi.deleteTemplatesFromDocument(this.docuArgs.apiAccountId, envelope['envelope_id'], docTemplate.documentId, docTemplate.templateId)
+                    }
                 }
                 if (continue_process) {
                     let documentTemplateList: docusign.DocumentTemplateList = {documentTemplates: [{templateId: template.templateId}]};
