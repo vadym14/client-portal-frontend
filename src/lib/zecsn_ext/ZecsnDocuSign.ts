@@ -10,6 +10,7 @@ class ZecsnDocuSign {
     SCOPES = [
         "signature", "impersonation"
     ];
+    _server_messages = []
 
     initialize = async () => {
         this.docuArgs = await this.getDocuJwt()
@@ -19,13 +20,19 @@ class ZecsnDocuSign {
         this.API = new ZecsnExtAPI();
     }
 
+    getServerMessages = async (): Promise<any> => {
+        Array.prototype.push.apply(this._server_messages, await this.API.getServerMessages())
+        const _server_messages = this._server_messages
+        this._server_messages = []
+        return _server_messages;
+    };
+
     getEnvelope = async (customer: string) => {
         let envelope = await this.API.getValue('DocuSign Envelope', ['name', 'envelope_id', 'envelope_status'], {'customer': customer})
         if (!envelope['envelope_id']) {
             let project = await this.API.getValue('Project', 'name', {'customer': customer})
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             let results = await envelopesApi.createEnvelope(this.docuArgs.apiAccountId);
-            console.log(results)
             envelope = {
                 'customer': customer,
                 'project': project['name'],
@@ -33,7 +40,6 @@ class ZecsnDocuSign {
                 'envelope_status': 'created',
                 'doctype': 'DocuSign Envelope'
             }
-            console.log(envelope)
             envelope = await this.API.insert(envelope)
         }
         return envelope
@@ -41,7 +47,7 @@ class ZecsnDocuSign {
 
     getEnvelopeUpdate = async (customer: string) => {
         let envelope = await this.getEnvelope(customer)
-        if (envelope['envelope_status'] !== 'completed') {
+        if (envelope && envelope['envelope_status'] !== 'completed') {
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             let results = await envelopesApi.getEnvelope(this.docuArgs.apiAccountId, envelope['envelope_id']);
             envelope = {
@@ -51,7 +57,7 @@ class ZecsnDocuSign {
                 'doctype': 'DocuSign Envelope'
             }
             envelope = await this.API.update(envelope)
-            if (envelope['envelope_status'] === 'completed') {
+            if (envelope && envelope['envelope_status'] === 'completed') {
                 await this.createIdEvidence(envelope['envelope_id'], customer)
                 await this.createInvoice(customer)
             }
@@ -103,6 +109,7 @@ class ZecsnDocuSign {
     }
 
     createInvoice = async (customer: string) => {
+        let response = null
         const invoiceData = {
             'doctype': 'Sales Invoice',
             'naming_series': 'I-ONP-.YY.-',
@@ -130,7 +137,8 @@ class ZecsnDocuSign {
         invoiceData['customer'] = customer
         const project = await this.API.getValue('Project', ['name', 'project_name', 'territory', 'selected_plan', 'unadjusted_amount'],
             {'customer': customer})
-        if (project) {
+        const company = await this.API.getValue('Company', ['default_income_account', 'default_discount_account'], [])
+        if (project && company) {
             invoiceData['project'] = project['name']
             invoiceData['territory'] = project['territory']
             invoiceData['payment_terms_template'] = project['selected_plan']
@@ -138,13 +146,11 @@ class ZecsnDocuSign {
             invoiceData['items'][0]['description'] = project['project_name']
             invoiceData['items'][0]['rate'] = project['unadjusted_amount']
             invoiceData['items'][0]['project'] = project['name']
-            const company = await this.API.getValue('Company', ['default_income_account', 'default_discount_account'], [])
-            if (company) {
-                invoiceData['items'][0]['income_account'] = company['default_income_account']
-                invoiceData['items'][0]['discount_account'] = company['default_discount_account']
-                return await this.API.insert(invoiceData)
-            }
+            invoiceData['items'][0]['income_account'] = company['default_income_account']
+            invoiceData['items'][0]['discount_account'] = company['default_discount_account']
+            response = await this.API.insert(invoiceData)
         }
+        return response
     }
 
     getTemplate = async (template_name: string) => {
@@ -162,6 +168,7 @@ class ZecsnDocuSign {
 
 
     applyTemplate = async (customer: string, template_name: string) => {
+        let status = false
         let envelope = await this.getEnvelope(customer)
         let template = await this.getTemplate(template_name)
         if (envelope['envelope_id'] && template) {
@@ -184,22 +191,32 @@ class ZecsnDocuSign {
                         documentTemplateList: documentTemplateList
                     })
                 }
-                return true
+                status = true
             } catch (error) {
                 let errorBody = error && error.response && error.response.body,
                     errorCode = errorBody && errorBody.errorCode, errorMessage = errorBody && errorBody.message;
-                console.log(errorBody)
-                return false
+                if (errorMessage) {
+                    Array.prototype.push.apply(this._server_messages, [{
+                        'message': errorMessage,
+                        'indicator': 'red'
+                    }])
+                }
             }
+        } else {
+            Array.prototype.push.apply(this._server_messages, [{
+                'message': template ? 'Envelope does not found' : 'Template does not found',
+                'indicator': 'red'
+            }])
         }
+        return status
     }
 
 
-    fillCustomFields = async (customer: string, template_name: string) => {
+    fillCustomFields = async (customer: string) => {
+        let status = false
         let envelope = await this.getEnvelope(customer)
-        let template = await this.getTemplate(template_name)
         let project = await this.API.getValue('Project', 'name', {'customer': customer})
-        if (envelope['envelope_id'] && template && project['name']) {
+        if (envelope['envelope_id'] && project['name']) {
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             try {
                 let customFields: docusign.TemplateCustomFields = {textCustomFields: []}
@@ -219,21 +236,31 @@ class ZecsnDocuSign {
                 let results = await envelopesApi.updateCustomFields(this.docuArgs.apiAccountId, envelope['envelope_id'], {
                     customFields: customFields
                 })
-                return true
+                status = true
             } catch (error) {
                 let errorBody = error && error.response && error.response.body,
                     errorCode = errorBody && errorBody.errorCode, errorMessage = errorBody && errorBody.message;
-                console.log(errorBody)
-                return false
+                if (errorMessage) {
+                    Array.prototype.push.apply(this._server_messages, [{
+                        'message': errorMessage,
+                        'indicator': 'red'
+                    }])
+                }
             }
+        } else {
+            Array.prototype.push.apply(this._server_messages, [{
+                'message': envelope ? 'Project does not found' : 'Envelope does not found',
+                'indicator': 'red'
+            }])
         }
+        return status
     }
 
 
-    addSigner = async (customer: string, contact, template_name: string) => {
+    addSigner = async (customer: string, contact) => {
+        let status = false
         let envelope = await this.getEnvelope(customer)
-        let template = await this.getTemplate(template_name)
-        if (envelope['envelope_id'] && template) {
+        if (envelope['envelope_id']) {
             try {
                 let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
                 let continue_process = true
@@ -251,7 +278,7 @@ class ZecsnDocuSign {
                     let recipients: docusign.EnvelopeRecipients = {
                         signers: [{
                             roleName: 'Signer',
-                            name: customer,
+                            name: contact['first_name'] + ' ' + contact['last_name'],
                             firstName: contact['first_name'],
                             lastName: contact['last_name'],
                             email: contact['email_id'],
@@ -264,19 +291,29 @@ class ZecsnDocuSign {
                         recipients: recipients
                     })
                 }
-                return true
+                status = true
             } catch (error) {
                 let errorBody = error && error.response && error.response.body,
                     errorCode = errorBody && errorBody.errorCode, errorMessage = errorBody && errorBody.message;
-                console.log(errorBody)
-                return false
+                if (errorMessage) {
+                    Array.prototype.push.apply(this._server_messages, [{
+                        'message': errorMessage,
+                        'indicator': 'red'
+                    }])
+                }
             }
+        } else {
+            Array.prototype.push.apply(this._server_messages, [{
+                'message': 'Envelope does not found',
+                'indicator': 'red'
+            }])
         }
+        return status
     }
 
     sendEnvelope = async (customer: string, contact) => {
+        let status = false
         let envelope = await this.getEnvelope(customer)
-        // Todo Embedded Signing
         if (envelope['envelope_id']) {
             let envelopesApi = new docusign.EnvelopesApi(this.dsApiClient)
             const envelopeModification: docusign.Envelope = {
@@ -301,10 +338,20 @@ class ZecsnDocuSign {
             } catch (error) {
                 let errorBody = error && error.response && error.response.body,
                     errorCode = errorBody && errorBody.errorCode, errorMessage = errorBody && errorBody.message;
-                console.log(errorBody)
-                return false
+                if (errorMessage) {
+                    Array.prototype.push.apply(this._server_messages, [{
+                        'message': errorMessage,
+                        'indicator': 'red'
+                    }])
+                }
             }
+        } else {
+            Array.prototype.push.apply(this._server_messages, [{
+                'message': 'Envelope does not found',
+                'indicator': 'red'
+            }])
         }
+        return status
     }
 
 
@@ -435,6 +482,10 @@ class ZecsnDocuSign {
             return true;
         } else {
             console.error("Please grant consent!");
+            Array.prototype.push.apply(this._server_messages, [{
+                'message': 'Please grant consent!',
+                'indicator': 'red'
+            }])
             process.exit();
         }
     }

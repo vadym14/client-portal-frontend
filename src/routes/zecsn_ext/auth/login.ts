@@ -127,9 +127,23 @@ export async function post({request}: any) {
                                     'total_terms': plan['terms'].length,
                                     'docusign_template': plan['docusign_template'],
                                     'credit_duration': credit_duration(credit_days),
-                                    'total_amount':data['project']['unadjusted_amount'],
+                                    'total_amount': data['project']['unadjusted_amount'],
                                     'terms': plan['terms'],
                                 }
+                            }
+                            const salesInvoice = await api.getValue('Sales Invoice', ['name'], {'customer': customer['name']})
+                            const paymentSchedule = await api.getDoc('Sales Invoice', salesInvoice['name'])
+                            if (paymentSchedule && paymentSchedule['payment_schedule']) {
+                                data['paymentSchedule'] = paymentSchedule['payment_schedule']
+                                data['baseTotal']= paymentSchedule['base_grand_total']
+
+                            } else {
+                                data['paymentSchedule'] = []
+                                data['baseTotal']=0
+                                Array.prototype.push.apply(data['_server_messages'], [{
+                                    'message': 'No Sales Invoice found please contact administrator',
+                                    'indicator': 'red'
+                                }])
                             }
                             Array.prototype.push.apply(cookies, response.data.split(';').map(cookie => {
                                 return cookie + '; Path=/; SameSite=Lax';
@@ -139,7 +153,6 @@ export async function post({request}: any) {
                             status = true
                         }
                     }
-
                 }
             }
         } else
@@ -147,7 +160,6 @@ export async function post({request}: any) {
                 'message': 'User and account info does not match',
                 'indicator': 'red'
             }])
-
     }
     Array.prototype.push.apply(data['_server_messages'], await api.getServerMessages())
 
