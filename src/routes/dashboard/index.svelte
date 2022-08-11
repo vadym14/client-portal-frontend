@@ -93,7 +93,7 @@
         let paidAmount = 0;
         let breakPoint = true;
         jsonData?.paymentSchedule?.forEach(element => {
-            const discount = element.discount ? (jsonData?.baseTotal * element.discount) / 100 : 0;
+            const discount = element.discount ? ( element.payment_amount * element.discount) / 100 : 0;
             element.discount_amount = discount;
             if (element['paid_amount'] !== (element['payment_amount'] - discount)) {
                 remainingAmount += element.payment_amount - discount;

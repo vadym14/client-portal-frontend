@@ -326,7 +326,7 @@ class ZecsnDocuSign {
                 })
                 let args: any = {
                     signerEmail: contact['email_id'],
-                    signerName: customer,
+                    signerName: `${contact['first_name']} ${contact['last_name']}`,
                     signerClientId: customer
                 }
                 let viewRequest = await this.makeRecipientViewRequest(args);

@@ -4,7 +4,7 @@ import ZecsnDocuSign from "../../../lib/zecsn_ext/ZecsnDocuSign";
 export async function post({request}: any) {
     let status = true
     let data = {'_server_messages': []}
-    let rjson = request.json()
+    let rjson = await request.json()
     let zDocuSign = new ZecsnDocuSign()
     await zDocuSign.initialize()
     const envelope = await zDocuSign.getEnvelopeUpdate(rjson.name)
