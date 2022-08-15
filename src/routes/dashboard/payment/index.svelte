@@ -98,8 +98,17 @@
             const response = await api('POST', `portal/paymentEntry`, {...jsonData});
             let rjson = await response.json()
             if (rjson.status) {
+                const paymentHistory = {
+                    'reference_no': result.paymentIntent.id,
+                    'termName': $paymentStripe.termName,
+                    'posting_date': $paymentStripe.dueDate,
+                    'paid_amount': parseFloat(amount)
+                };
+                $DasboardInfo.paymentHistory.unshift(paymentHistory);
+                const data = {...$DasboardInfo}
+                $DasboardInfo = data;
                 // payment succeeded, redirect to "thank you" page
-                toast.push("Payed successfully.", {
+                toast.push("Paid successfully.", {
                     theme: {
                         '--toastBackground': '#48BB78',
                         '--toastBarBackground': '#2F855A'
@@ -107,7 +116,7 @@
                 })
                 $paymentStripe = "{}";
             } else {
-                toast.push('Pay unsuccessful', {
+                toast.push('Payment failed.', {
                     'theme': {
                         '--toastBackground': '#F56565',
                         '--toastBarBackground': '#C53030'

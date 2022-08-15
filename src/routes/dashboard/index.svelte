@@ -1,22 +1,7 @@
 <script lang="ts">
-    import {api} from "$lib/_api";
-    import LoaderPage from "../../lib/LoaderPage.svelte";
     import {DasboardInfo} from "../../lib/store/dashboardinfoStore.ts";
     import {goto} from "$app/navigation";
     import {paymentStripe} from "$lib/store/paymentStore";
-
-    let payHistory = [{
-        'date': '',
-        'amount': '',
-        'status': '',
-    }];
-
-    const getData = async () => {
-        const response = await api('post', `portal/dataFromStipe`, {'customer': $DasboardInfo['customer']['name']});
-        const data = await response.json()
-        payHistory = data.data
-    }
-    let promise = getData();
 
     let jsonData = {
         'customer': {
@@ -73,40 +58,47 @@
         },
         'paymentSchedule': [],
         'baseTotal': 0,
+        'paymentHistory': [],
     };
 
     let innerValue = 0;
     let total_payed = 0;
     jsonData = {...$DasboardInfo};
-
     const finalDate = () => {
-        const lastElement = jsonData?.paymentSchedule?.slice(-1);
+        const lastElement = jsonData?.paymentSchedule?.slice(0, 1);
         if (lastElement[0] === undefined || lastElement === undefined || lastElement.length === 0) {
             return '';
         } else {
             return lastElement[0]['due_date'];
         }
-
     }
     const getRemainingAmount = () => {
         let remainingAmount = 0;
         let paidAmount = 0;
-        let breakPoint = true;
-        jsonData?.paymentSchedule?.forEach(element => {
-            const discount = element.discount ? ( element.payment_amount * element.discount) / 100 : 0;
+        jsonData?.paymentSchedule?.forEach((element, index) => {
+            const discount = element.discount ? (element.payment_amount * element.discount) / 100 : 0;
             element.discount_amount = discount;
+            //set remaining amount and status
             if (element['paid_amount'] !== (element['payment_amount'] - discount)) {
                 remainingAmount += element.payment_amount - discount;
-                element.status = breakPoint ? 2 : 1;
-                breakPoint = false
-            } else {
-                paidAmount += element.paid_amount;
-                element.status = 3
+                if (jsonData?.paymentSchedule.length - 1 - (jsonData?.paymentHistory.length) === index) {
+                    element.status = 2;
+                } else {
+                    element.status = 1;
+                }
             }
+            //set paid amount
+            jsonData?.paymentHistory?.forEach((element1) => {
+                    if (element1['termName'] === element['payment_term']) {
+                        paidAmount += element1['paid_amount'];
+                        element.status = 3
+                    }
+                }
+            );
         });
         total_payed = paidAmount;
         innerValue = (total_payed / (total_payed + remainingAmount)) * 100;
-        return remainingAmount;
+        return remainingAmount - paidAmount;
     }
     const handlePayment = (amount, discount, name, date) => {
         $paymentStripe = {
@@ -201,33 +193,28 @@
                 <h1 class='ml-4 text-lg font-semibold text-center lg:text-left'>Payment History</h1>
             </div>
             <div class="mx-4">
-                {#await promise}
-                    <LoaderPage/>
-                {:then number}
-                    <table class="table table-normal w-full text-base p-head">
-                        <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {#each payHistory as item,index}
+                <table class="table table-normal w-full text-base p-head">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {#if jsonData['paymentHistory']?.length > 0 || jsonData['paymentHistory'] !== undefined}
+                        {#each jsonData?.paymentHistory as item,index}
                             <tr key={index}>
-                                <td>{item.date}</td>
-                                <td>${item.amount}</td>
+                                <td>{item.posting_date}</td>
+                                <td>${item.paid_amount.toFixed(2)}</td>
                                 <td class="uppercase">
-                                    {#if item.status === "succeeded" } <span class="text-[#2EB85C]">Approved</span>
-                                    {:else}
-                                        <span class="text-[#F54D4D]">Declined</span>
-                                    {/if}
+                                    <span class="text-[#2EB85C]">Approved</span>
                                 </td>
                             </tr>
                         {/each}
-                        </tbody>
-                    </table>
-                {/await}
+                    {/if}
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="bg-white">
@@ -245,22 +232,22 @@
                     </thead>
                     <tbody>
                     {#if jsonData['paymentSchedule'].length > 0 || jsonData['paymentSchedule'] !== undefined}
-                        {#each jsonData['paymentSchedule']?.reverse() as item,index}
+                        {#each jsonData['paymentSchedule'] as item,index}
                             <tr key={index}>
                                 <td>{item['due_date']}</td>
                                 <td>{(item['payment_amount'] - item['discount_amount']).toFixed((2))}</td>
                                 <td>
                                     {#if item['status'] === 1}
-                                        <span class='text-[#F4B267]'>Upcoming</span>
+                                        <span class='text-[#F4B267] uppercase'>Upcoming</span>
                                     {:else if item['status'] === 2}
                                         <button class="btn  w-1/2 whitespace-nowrap btn-primary btn-outline "
                                                 on:click={()=>handlePayment(item['payment_amount'],item['discount_amount'],item['payment_term'],item['due_date'])}>
                                             Pay Now
                                         </button>
                                     {:else if item['status'] === 3}
-                                        <td class='text-[#2EB85C]'>Paid</td>
+                                        <span class='text-[#2EB85C] uppercase'>Paid</span>
                                     {:else}
-                                        <td class='text-[#F56565]'>Unknown</td>
+                                        <span class='text-[#F56565]'>Unknown</span>
                                     {/if}
                                 </td>
                             </tr>

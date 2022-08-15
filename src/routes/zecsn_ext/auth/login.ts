@@ -134,12 +134,30 @@ export async function post({request}: any) {
                             const salesInvoice = await api.getValue('Sales Invoice', ['name'], {'customer': customer['name']})
                             const paymentSchedule = await api.getDoc('Sales Invoice', salesInvoice['name'])
                             if (paymentSchedule && paymentSchedule['payment_schedule']) {
-                                data['paymentSchedule'] = paymentSchedule['payment_schedule']
-                                data['baseTotal']= paymentSchedule['base_grand_total']
-
+                                data['paymentSchedule'] = paymentSchedule['payment_schedule'].reverse();
+                                data['baseTotal'] = paymentSchedule['base_grand_total'];
+                                //payment entry data
+                                const paymentHistories = await api.getDoc('Payment Entry', rjson.customer,)
+                                if (paymentHistories && paymentHistories) {
+                                    let paymentHistory: any = [];
+                                    paymentHistory = paymentHistories.map(async (payment: any) => {
+                                        const paymentEntry = await api.getDoc('Payment Entry', payment.name);
+                                        if (paymentEntry && paymentEntry) {
+                                            return ({
+                                                'reference_no': paymentEntry['reference_no'],
+                                                'posting_date': paymentEntry['posting_date'],
+                                                'paid_amount': paymentEntry['paid_amount'],
+                                                'termName': paymentEntry['references'][0]['payment_term'],
+                                            })
+                                        }
+                                    })
+                                    data['paymentHistory'] = await Promise.all(paymentHistory);
+                                } else {
+                                    data['paymentHistory'] = [];
+                                }
                             } else {
                                 data['paymentSchedule'] = []
-                                data['baseTotal']=0
+                                data['baseTotal'] = 0
                                 Array.prototype.push.apply(data['_server_messages'], [{
                                     'message': 'No Sales Invoice found please contact administrator',
                                     'indicator': 'red'

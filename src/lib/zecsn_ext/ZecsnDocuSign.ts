@@ -2,6 +2,7 @@ import docusign from "docusign-esign";
 import fs from "fs";
 import jwtConfig from '$lib/config/jwtConfig.json'
 import ZecsnExtAPI from "./ZecsnExtAPI";
+import Stripe from 'stripe'
 
 class ZecsnDocuSign {
     docuArgs = null
@@ -114,6 +115,7 @@ class ZecsnDocuSign {
             'doctype': 'Sales Invoice',
             'naming_series': 'I-ONP-.YY.-',
             'customer': '',
+            'docstatus': 1,
             'project': '',
             'cost_center': 'Main - TFS',
             'territory': '',
@@ -149,8 +151,33 @@ class ZecsnDocuSign {
             invoiceData['items'][0]['income_account'] = company['default_income_account']
             invoiceData['items'][0]['discount_account'] = company['default_discount_account']
             response = await this.API.insert(invoiceData)
+            const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY)
+            const customerStripe = await stripe.customers.create({
+                name: customer,
+                description: 'My First Test Customer',
+            });
+            if (customerStripe) {
+                const jsonData = {
+                    'doctype': 'Customer',
+                    'name': customer,
+                    'stripe_id': customerStripe.id,
+                }
+                const customerUpdated = await this.API.update(jsonData)
+            }
         }
         return response
+    }
+
+    chargeStripe = async (customer) => {
+        const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY)
+        const chargeCreate = await stripe.charges.create({
+            amount: 2000,
+            currency: 'usd',
+            customer: customer.stripe_id
+        });
+        const chargeCapture = await stripe.charges.capture(
+            'ch_3LVySZ2eZvKYlo2C19Y1zF3y'
+        );
     }
 
     getTemplate = async (template_name: string) => {

@@ -4,10 +4,11 @@
     import {goto} from "$app/navigation";
     import {toast} from "@zerodevx/svelte-toast";
     import {userInfo} from "$lib/store/UserInfoStore";
+    import {DasboardInfo} from "$lib/store/dashboardinfoStore";
 
     onMount(async () => {
         const jsonData = {
-            name: $userInfo.customer.name
+            name: $userInfo.customer ? $userInfo.customer.name : $DasboardInfo.customer.name
         }
         const response = await api('POST', `auth/docuSign`, jsonData);
         let rjson = await response.json()

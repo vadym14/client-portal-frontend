@@ -33,6 +33,7 @@ export async function post({request}: any) {
         rjson.paymentEntry.paid_to = company['default_merchant_account'];
         rjson.paymentEntry.deductions[0].account = company['default_discount_account'];
         if (rjson.paidStatus === 'succeeded') {
+            rjson.paymentEntry.docstatus = 1;
             const result = await api.insert(rjson.paymentEntry)
             status = true
         }
@@ -42,6 +43,6 @@ export async function post({request}: any) {
         headers: {
             'access-control-allow-origin': '*',
         },
-        body: {'status': status, 'data': ''}
+        body: {'status': status, 'data': rjson.paymentEntry}
     };
 }
