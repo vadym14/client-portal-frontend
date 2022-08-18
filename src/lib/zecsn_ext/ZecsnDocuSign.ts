@@ -154,7 +154,7 @@ class ZecsnDocuSign {
             const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY)
             const customerStripe = await stripe.customers.create({
                 name: customer,
-                description: 'My First Test Customer',
+                description: 'Tare Financial Customer',
             });
             if (customerStripe) {
                 const jsonData = {
@@ -164,20 +164,22 @@ class ZecsnDocuSign {
                 }
                 const customerUpdated = await this.API.update(jsonData)
             }
+
         }
         return response
     }
 
-    chargeStripe = async (customer) => {
+    chargeStripe = async (data: any) => {
         const stripe = new Stripe(import.meta.env.VITE_STRIPE_SECRET_KEY)
         const chargeCreate = await stripe.charges.create({
-            amount: 2000,
+            amount: data.amount,
             currency: 'usd',
-            customer: customer.stripe_id
+            customer: data.stripe_id
         });
         const chargeCapture = await stripe.charges.capture(
             'ch_3LVySZ2eZvKYlo2C19Y1zF3y'
         );
+        return chargeCapture
     }
 
     getTemplate = async (template_name: string) => {

@@ -2,6 +2,8 @@
     import {DasboardInfo} from "../../lib/store/dashboardinfoStore.ts";
     import {goto} from "$app/navigation";
     import {paymentStripe} from "$lib/store/paymentStore";
+    import {onMount} from "svelte";
+    import {api} from "../../lib/_api";
 
     let jsonData = {
         'customer': {
@@ -64,6 +66,7 @@
     let innerValue = 0;
     let total_payed = 0;
     jsonData = {...$DasboardInfo};
+
     const finalDate = () => {
         const lastElement = jsonData?.paymentSchedule?.slice(0, 1);
         if (lastElement[0] === undefined || lastElement === undefined || lastElement.length === 0) {
@@ -95,6 +98,8 @@
                     }
                 }
             );
+            //    get current date for auto payment methods
+
         });
         total_payed = paidAmount;
         innerValue = (total_payed / (total_payed + remainingAmount)) * 100;
