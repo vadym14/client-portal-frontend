@@ -18,9 +18,6 @@
         }
     };
 
-    const openModal = () => {
-        return true;
-    };
     let envelopeArgs = {
         signerEmail: $userInfo.user.email,
         signerName: $userInfo.customer.customer_name,
@@ -133,33 +130,38 @@
                     <div class="flex sm:overflow-scroll xl:overflow-hidden gap-2">
                         {#if (userData.plans)}
                             {#each userData?.plans as plan}
-                                <div key={plan.name}
-                                     class="w-60 h-80 border hover:border-primary rounded p-5 flex flex-col ">
-                                    <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
-                                    <div class="max-w-52 p-3 bg-gray-100 rounded align-center">
-                                        <h2 class="text-lg text-blue-500 text-center font-semibold text-primary">
-                                            ${plan.settlement_amount}</h2>
-                                        {#if (parseInt(plan.settlement_amount) !== parseInt(userData?.project?.unadjusted_amount))}
-                                            <span class="text-center flex justify-center line-through  text-sm">{userData?.project?.unadjusted_amount}</span>
-                                        {/if}
+                                <div class="w-60 h-[23rem] border hover:border-primary rounded p-5 flex flex-col justify-between"
+                                     key={plan.name}>
+                                    <div>
+                                        <h2 class="text-center text-lg font-bold">Offer {plan.name}</h2>
+                                        <div class="max-w-52 p-3 bg-gray-100 rounded align-center">
+                                            <h2 class="text-lg text-blue-500 text-center font-semibold text-primary">
+                                                ${plan.settlement_amount}</h2>
+                                            {#if (parseInt(plan.settlement_amount) !== parseInt(userData?.project?.unadjusted_amount))}
+                                                <span class="text-center flex justify-center line-through  text-sm">{userData?.project?.unadjusted_amount}</span>
+                                            {/if}
+                                        </div>
+                                        <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">
+                                            {#if (parseInt(plan.forgiven_percentage) > 0)}
+                                                {plan.forgiven_percentage}% forgiven
+                                            {:else}
+                                                no debt forgiveness
+                                            {/if}
+                                        </h2>
+                                        <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
+                                        <h2 class="text-center text-sm font-medium mt-3 px-4">
+                                            {#if (parseInt(plan.total_terms) > 1)}
+                                                {plan.total_terms} equal payments of
+                                                ${(parseInt(plan.settlement_amount) / parseInt(plan.total_terms)).toFixed(2)}
+                                            {/if}
+                                        </h2>
+
                                     </div>
-                                    <h2 class="text-center text-lg font-semibold text-[#FB896B] mt-4">
-                                        {#if (parseInt(plan.forgiven_percentage) > 0)}
-                                            {plan.forgiven_percentage}% forgiven
-                                        {:else}
-                                            no debt forgiveness
-                                        {/if}
-                                    </h2>
-                                    <h2 class="text-center text-sm font-medium mt-3 px-4">{plan.credit_duration}</h2>
-                                    <h2 class="text-center text-sm font-medium mt-3 px-4">
-                                        {#if (parseInt(plan.total_terms) > 1)}
-                                            {plan.total_terms} equal payments of
-                                            ${(parseInt(plan.settlement_amount) / parseInt(plan.total_terms)).toFixed(2)}
-                                        {/if}
-                                    </h2>
-                                    <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
-                                            on:click={() =>handleSelectOffer(plan)}>Select
-                                    </button>
+                                    <div>
+                                        <button class={`btn btn-primary w-52 mt-10 ${selectOffer===plan.name?'':'btn-outline'}`}
+                                                on:click={() =>handleSelectOffer(plan)}>Select
+                                        </button>
+                                    </div>
                                 </div>
                             {/each}
                         {/if}

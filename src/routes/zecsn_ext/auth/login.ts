@@ -39,26 +39,30 @@ export async function post({request}: any) {
                         address['doctype'] = 'Address';
                         data['address'] = address;
                     }
-                    let zDocuSign = new ZecsnDocuSign()
-                    await zDocuSign.initialize()
-                    const envelope = await zDocuSign.getEnvelopeUpdate(customer['name'])
-                    let continue_process = true
-                    if (envelope && envelope['envelope_status']) {
-                        envelope['doctype'] = 'DocuSign Envelope';
-                        data['envelope'] = envelope;
-                    } else {
-                        Array.prototype.push.apply(data['_server_messages'], [{
-                            'message': 'Envelop does not exist, please contact support.',
-                            'indicator': 'red'
-                        }])
-                        continue_process = status = false
-                    }
-                    const project = await api.getValue('Project', ['name', 'territory', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
+                    const project = await api.getValue('Project', ['name', 'territory', 'original_creditor', 'creditor_account_number', 'account_open', 'charge_off_date', 'unadjusted_amount', 'bypass_docusign', 'selected_plan', 'plan_1', 'plan_2', 'plan_3', 'plan_4', 'plan_5'],
                         {'customer': customer['name']})
+                    let continue_process = true
+                    let envelope: any = {};
+                    if (project && !project['bypass_docusign']) {
+                        let zDocuSign = new ZecsnDocuSign()
+                        await zDocuSign.initialize()
+                        envelope = await zDocuSign.getEnvelopeUpdate(customer['name'])
+                        if (envelope && envelope['envelope_status']) {
+                            envelope['doctype'] = 'DocuSign Envelope';
+                            data['envelope'] = envelope;
+                        } else {
+                            Array.prototype.push.apply(data['_server_messages'], [{
+                                'message': 'Envelop does not exist, please contact support.',
+                                'indicator': 'red'
+                            }])
+                            continue_process = status = false
+                        }
+                    }
+
                     if (continue_process && project) {
                         project['doctype'] = 'Project';
                         data['project'] = project;
-                        if (envelope['envelope_status'] !== 'completed' || !project['selected_plan']) {
+                        if ((envelope['envelope_status'] !== 'completed' && !project['bypass_docusign']) || !project['selected_plan']) {
                             data['plans'] = []
                             let plan_names = [data['project']['plan_1'], data['project']['plan_2'], data['project']['plan_3'], data['project']['plan_4'], data['project']['plan_5']].filter(Boolean)
                             if (plan_names) {
@@ -137,7 +141,7 @@ export async function post({request}: any) {
                                 data['paymentSchedule'] = paymentSchedule['payment_schedule'].reverse();
                                 data['baseTotal'] = paymentSchedule['base_grand_total'];
                                 //payment entry data
-                                const paymentHistories = await api.getDoc('Payment Entry', rjson.customer,)
+                                const paymentHistories = await api.getDocList('Payment Entry', ['name'], {'party': customer['name']})
                                 if (paymentHistories && paymentHistories) {
                                     let paymentHistory: any = [];
                                     paymentHistory = paymentHistories.map(async (payment: any) => {

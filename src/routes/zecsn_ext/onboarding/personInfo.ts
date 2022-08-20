@@ -10,7 +10,6 @@ export async function post({request}: any) {
     };
     const rjson = await request.json();
     const api = new ZecsnExtAPI();
-    console.log(rjson)
 
     let contact = null
     if (rjson['contact']) {
@@ -56,13 +55,16 @@ export async function post({request}: any) {
         }
         if (address)
             rjson['customer']['customer_primary_address'] = address['name']
+        rjson['customer']['password'] = rjson['user'].new_password
         await api.update(rjson['customer'])
         rjson['user']['user_type'] = "Website User"
         rjson['user']['send_welcome_email'] = 0
 
-        let zDocuSign = new ZecsnDocuSign()
-        await zDocuSign.initialize()
-        await zDocuSign.getEnvelope(rjson['customer']['name'])
+        if (!rjson['project']['bypass_docusign']) {
+            let zDocuSign = new ZecsnDocuSign()
+            await zDocuSign.initialize()
+            await zDocuSign.getEnvelope(rjson['customer']['name'])
+        }
 
         const user = await api.insert(rjson['user'])
         if (user)

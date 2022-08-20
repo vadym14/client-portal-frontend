@@ -49,6 +49,7 @@
             'account_open': '',
             'charge_off_date': '',
             'unadjusted_amount': '',
+            'bypass_docusign': '',
         },
         "plans": [{
             'name': '',
@@ -68,7 +69,7 @@
     const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const phoneRegex = /^(\d){3}[-](\d){3}[-](\d){4}$/;
     let disabledInfo = true, btnLoading = false, btnDisable = false;
-    let errorClass='' , emailValidation = '', phoneValidation =''
+    let errorClass = '', emailValidation = '', phoneValidation = ''
     let previousData = {register: {name: undefined, ssn: undefined}}
     onMount(() => {
         previousData = {...$userInfo};
@@ -95,17 +96,16 @@
                 }
             })
         }
-            if (!disabledInfo && !emailRegex.test(jsonData.contact.email_id)) {
-                errorClass = '-error';
+        if (!disabledInfo && !emailRegex.test(jsonData.contact.email_id)) {
+            errorClass = '-error';
             btnDisable = btnLoading = false;
-                emailValidation = 'You have entered an invalid email address!';
-            }
-            if (!disabledInfo && !phoneRegex.test(jsonData.contact.phone) ) {
-                errorClass = '-error';
+            emailValidation = 'You have entered an invalid email address!';
+        }
+        if (!disabledInfo && !phoneRegex.test(jsonData.contact.phone)) {
+            errorClass = '-error';
             btnDisable = btnLoading = false;
-                phoneValidation = 'please match the format. e.g., 100-100-1000';
-            }
-         else {
+            phoneValidation = 'please match the format. e.g., 100-100-1000';
+        } else {
             if (isAddressChanged) {
                 jsonData.address.name = '';
             }
@@ -129,9 +129,9 @@
     const addressChanged = () => {
         isAddressChanged = true;
     };
-    const regCheck = (value,name)=> {
+    const regCheck = (value, name) => {
         emailValidation = '';
-        phoneValidation= '';
+        phoneValidation = '';
         if (!emailRegex.test(value) && name === 'email') {
             emailValidation = 'You have entered an invalid email address!';
         }

@@ -2,6 +2,8 @@
     import {DasboardInfo} from "../../lib/store/dashboardinfoStore.ts";
     import {goto} from "$app/navigation";
     import {paymentStripe} from "$lib/store/paymentStore";
+    import {onMount} from "svelte";
+    import {api} from "../../lib/_api";
 
     let jsonData = {
         'customer': {
@@ -62,8 +64,9 @@
     };
 
     let innerValue = 0;
-    let total_payed = 0;
+    let total_paid = 0;
     jsonData = {...$DasboardInfo};
+
     const finalDate = () => {
         const lastElement = jsonData?.paymentSchedule?.slice(0, 1);
         if (lastElement[0] === undefined || lastElement === undefined || lastElement.length === 0) {
@@ -96,8 +99,8 @@
                 }
             );
         });
-        total_payed = paidAmount;
-        innerValue = (total_payed / (total_payed + remainingAmount)) * 100;
+        total_paid = paidAmount;
+        innerValue = (total_paid / (total_paid + remainingAmount)) * 100;
         return remainingAmount - paidAmount;
     }
     const handlePayment = (amount, discount, name, date) => {
@@ -180,7 +183,7 @@
                             <h1 class='lg:text-lg text-2xl font-semibold text-[#7661E2]'>
                                 ${jsonData.paymentSchedule.length === 0 ? 0.00 : getRemainingAmount().toFixed(2)}</h1>
                             <h1 class='text-sm text-[#717782]'>Total Payments:</h1>
-                            <h1 class='lg:text-lg text-2xl font-semibold text-[#FB896B]'>${total_payed.toFixed(2)}</h1>
+                            <h1 class='lg:text-lg text-2xl font-semibold text-[#FB896B]'>${total_paid.toFixed(2)}</h1>
                             <h1 class='text-sm text-[#717782]'>Final Payment Date:</h1>
                             <h1 class='lg:text-lg text-2xl font-semibold text-[#394252]'>{finalDate()}</h1>
                         </div>

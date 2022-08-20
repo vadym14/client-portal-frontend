@@ -6,7 +6,7 @@
     import {api} from "../../../lib/_api";
     import {toast} from "@zerodevx/svelte-toast";
     import {paymentStripe} from "../../../lib/store/paymentStore";
-    import {DasboardInfo} from "$lib/store/dashboardinfoStore";
+    import {DasboardInfo} from "../../../lib/store/dashboardinfoStore";
 
     let amount = $paymentStripe.amount;
     let stripe = null;
@@ -61,7 +61,10 @@
     })
 
     const createPaymentIntent = async () => {
-        const response = await api('POST', `portal/paymentIntent`, {amount});
+        const response = await api('POST', `portal/paymentIntent`, {
+            'amount': parseFloat(amount),
+            'customer': $DasboardInfo.customer['stripe_id']
+        });
         let rjson = await response.json()
         if (rjson.status) {
             return rjson.data.client_secret
