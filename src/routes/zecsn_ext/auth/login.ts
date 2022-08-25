@@ -19,8 +19,8 @@ export async function post({request}: any) {
             const response = await api.login(rjson['usr'], rjson['pwd'])
             status = response['status']
             if (response['status']) {
+                data['redirect_url'] = 'login'
                 const user = await api.getDoc('User', rjson['usr'])
-                Array.prototype.push.apply(cookies, ['account=' + rjson.name + '; Path=/; SameSite=Lax'])
                 data['user'] = {
                     'doctype': 'User',
                     'name': user['name'],
@@ -102,6 +102,7 @@ export async function post({request}: any) {
                                     }
                                 }
                             }
+                            data['redirect_url'] = 'loginoffer'
                         } else {
                             const plan = await api.getDoc('Payment Terms Template', project['selected_plan'])
                             if (plan && plan['terms']) {
@@ -159,20 +160,19 @@ export async function post({request}: any) {
                                 } else {
                                     data['paymentHistory'] = [];
                                 }
+                                Array.prototype.push.apply(cookies, response.data.split(';').map(cookie => {
+                                    return cookie + '; Path=/; SameSite=Lax';
+                                }))
+                                data['message'] = 'Successfully Logged In'
+                                data['user'] = rjson['usr']
+                                data['redirect_url'] = 'dashboard'
                             } else {
-                                data['paymentSchedule'] = []
-                                data['baseTotal'] = 0
                                 Array.prototype.push.apply(data['_server_messages'], [{
                                     'message': 'No Sales Invoice found please contact administrator',
                                     'indicator': 'red'
                                 }])
+                                status = false
                             }
-                            Array.prototype.push.apply(cookies, response.data.split(';').map(cookie => {
-                                return cookie + '; Path=/; SameSite=Lax';
-                            }))
-                            data['message'] = 'Successfully Logged In'
-                            data['user'] = rjson['usr']
-                            status = true
                         }
                     }
                 }

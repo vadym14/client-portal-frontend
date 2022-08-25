@@ -73,6 +73,7 @@
             let rjson = await response.json()
             if (rjson.status) {
                 clientSecret = rjson.data.client_secret
+                console.log(rjson)
                 // reader = rjson.data.reader
             }
         }
@@ -143,7 +144,23 @@
         }
     }
 
-    const autoPayEnable = () => autoPay = true;
+    const autoPayEnable = async () => {
+        autoPay = true;
+        if ((jsonData.customer.account_number !== '' || jsonData.customer.account_number !== undefined) && jsonData.customer.stripe_id) {
+            const res = await api('POST', `portal/saveCardData`, {
+                'doctype': 'Customer',
+                'name': $DasboardInfo.customer['name'],
+                'autopay': autoPay,
+            });
+            let rejson = await res.json()
+            if (rejson.status) {
+                autoPay === 'Enables' ? true : false;
+                $DasboardInfo.customer = {...rejson.data.customer};
+                $DasboardInfo = {...$DasboardInfo}
+                jsonData = {...$DasboardInfo}
+            }
+        }
+    }
 
     const handleAutoPayEdit = async () => {
         await stripeCall();
@@ -388,26 +405,24 @@
                 </div>
             {:else if autoPay && isCardUpdate && clientSecret}
                 <h1 class="text-center text-lg sm:text-center font-semibold mb-4">Autopay Setting</h1>
-                {#await clientSecret}
-                    <Elements {stripe}
-                              {clientSecret}
-                              theme="flat"
-                              labels="above"
-                              variables={{colorPrimary: 'grey',colorBackground:'#fff'}}
-                              rules={{'.Input': { border: 'solid 1px #0002' }}}
-                              bind:elements>
-                        <!--                    <form on:submit|preventDefault={submit}>-->
+                <Elements {stripe}
+                          {clientSecret}
+                          theme="flat"
+                          labels="above"
+                          variables={{colorPrimary: 'grey',colorBackground:'#fff'}}
+                          rules={{'.Input': { border: 'solid 1px #0002' }}}
+                          bind:elements>
+                    <form on:submit|preventDefault={submit}>
                         <PaymentElement/>
-                        <button on:click={submit()} class="btn btn-primary w-full md:w-1/2" disabled={processing}>
+                        <button class="btn btn-primary w-full md:w-1/2" disabled={processing}>
                             {#if processing}
                                 Processing...
                             {:else}
                                 Save
                             {/if}
                         </button>
-                        <!--                    </form>-->
-                    </Elements>
-                {/await}
+                    </form>
+                </Elements>
             {:else}
                 <h1 class="text-center text-lg sm:text-center font-semibold mb-4">Autopay Setting</h1>
                 <div class="flex justify-center lg:flex-row gap-2 flex-col lg:mt-52 sm:mt-4">

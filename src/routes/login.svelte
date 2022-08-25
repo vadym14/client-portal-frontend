@@ -40,16 +40,19 @@
             handleServerMessages(rjson.data._server_messages)
             errorStatus = !rjson.status
             if (rjson.status) {
-                if ((rjson.data?.envelope?.envelope_status !== 'completed' && !rjson.data?.project?.bypass_docusign) || !rjson['data']['project']['selected_plan']) {
-                    $userInfo.user = rjson.data.user;
-                    $userInfo.customer = rjson.data.customer;
-                    $userInfo.project = rjson.data.project;
-                    $userInfo.plans = rjson.data.plans;
-                    await goto('/loginoffer')
-                } else {
-                    $DasboardInfo = rjson.data;
-                    toast.push(rjson.data.message)
-                    await goto('/dashboard');
+                switch (rjson.data.redirect_url) {
+                    case 'dashboard':
+                        $DasboardInfo = rjson.data;
+                        toast.push(rjson.data.message)
+                        await goto('/dashboard');
+                        break;
+                    case 'loginoffer':
+                        $userInfo.user = rjson.data.user;
+                        $userInfo.customer = rjson.data.customer;
+                        $userInfo.project = rjson.data.project;
+                        $userInfo.plans = rjson.data.plans;
+                        await goto('/loginoffer')
+                        break;
                 }
                 btnDisable = false;
                 btnLoading = false;

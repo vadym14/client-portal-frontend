@@ -29,10 +29,10 @@ export async function post({request}: any) {
     const updateCustomerCardData = {
         'doctype': 'Customer',
         'name': rjson.name,
-        'autopay':'Enabled',
-        'expiration_month': rjson.data.paymentMethod.card.exp_month,
-        'expiration_year': rjson.data.paymentMethod.card.exp_year,
-        'account_number': rjson.data.paymentMethod.card.last4,
+        'autopay': 'Enabled',
+        'expiration_month': rjson.paymentMethod.card.exp_month,
+        'expiration_year': rjson.paymentMethod.card.exp_year,
+        'account_number': rjson.paymentMethod.card.last4,
     }
     const api = new ZecsnExtAPI();
     const customer = await api.update(updateCustomerCardData)
