@@ -76,7 +76,6 @@
             errorClass = '-error';
         }
     }
-
 </script>
 
 <section class="">
@@ -117,7 +116,7 @@
                         <button disabled={btnDisable} class={`btn btn-primary ${btnLoading?'loading':''}`}
                                 on:click={()=>handleLogin()}>Login
                         </button>
-                        <a href="#" class="btn btn-link underline ">Forgot password?</a>
+                        <a href="/userverify" class="btn btn-link underline ">Forgot password?</a>
                     </div>
                     <hr class="text-gray-200"/>
                     <div class="mt-6 text-center">
@@ -132,7 +131,6 @@
                         <button class=" flex mx-auto mt-5 bg-[#8A76F3] hover:bg-[#9e8df5] text-white font-normal py-2 px-4 rounded"
                                 on:click={()=>goto('./register')}>Create Now!
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -177,18 +175,16 @@
                                            placeholder="Please enter your password"
                                            class={`input input-bordered w-full max-w-s ${password===''?'input'+errorClass:''}`}/>
                                 </div>
-                                <a href="#" class=" btn-link underline flex justify-end mt-3">Forgot password?</a>
-
+                                <a href="/userverify" class=" btn-link underline flex justify-end mt-3">Forgot
+                                    password?</a>
                             </div>
                             <button disabled={btnDisable}
                                     class={`btn btn-primary w-full mt-10 ${btnLoading?'loading':''}`}
                                     on:click={()=>handleLogin()}>Login
                             </button>
-
                             <p class="mt-16 text-[#717782] flex  text-sm  mt-6">Having problems signing in? - <a
                                     href="https://tarefinancial.com/contact" class="btn-link underline">Contact Us</a>
                             </p>
-
                         </div>
                     </div>
                 </div>
